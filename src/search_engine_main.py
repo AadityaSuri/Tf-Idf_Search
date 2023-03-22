@@ -113,7 +113,7 @@ def fileCollector(path):
         for file in files:
             filelist.append(os.path.join(root, file))
             
-            if len(filelist) == 20:
+            if len(filelist) == 50:
                 return filelist
 
     return filelist
@@ -122,7 +122,7 @@ doclist = []
 
 doclist.append('query.txt')
 
-doclist.extend(fileCollector(r'..\testset\sci.space'))
+doclist.extend(fileCollector(r'../testset/sci.space'))
 
 
 # i = 1
