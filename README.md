@@ -4,6 +4,6 @@ My attempt at a TF-IDF search engine which makes use of the Pandas library to st
 
 future changes:
 
-.Make the idf function by changing df values "on the fly"
-.Add some persistence using a database instead of pulling the entire vector space in memory
-.Port the codebase to C++ and introduce multithreading using xtensor to replace numpy
+1. Make the idf function by changing df values "on the fly"
+2. Add some persistence using a database instead of pulling the entire vector space in memory
+3. Port the codebase to C++ and introduce multithreading using xtensor to replace numpy
