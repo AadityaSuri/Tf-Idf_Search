@@ -4,6 +4,8 @@
 #include <vector>
 #include <chrono>
 #include <fstream>
+#include <algorithm>
+#include <iomanip>
 
 
 std::unordered_map<std::string, double> tf(std::vector<std::string> wordlist) {
@@ -19,7 +21,7 @@ std::unordered_map<std::string, double> tf(std::vector<std::string> wordlist) {
     return wordmap;
 } 
 
-std::vector<std::string> docPreProcessing(std::string filepath) {
+std::unordered_map<std::string, double> tf(std::string filepath) {
     std::vector<std::string> stop_words = {"i",
         "me",
         "my",
@@ -201,168 +203,70 @@ std::vector<std::string> docPreProcessing(std::string filepath) {
         "wouldn't"};
 
         std::unordered_map<std::string, int> stop_word_counter;
-
         for (auto word : stop_words) {
             stop_word_counter[word] = 0;
         }
 
         std::fstream file;
-
+        file.open(filepath, std::ios::in);
         std::string word;
 
+        std::unordered_map<std::string, double> wordmap;
+        int numWords = 0;
         while (file >> word) {
-            
+            if (stop_word_counter.find(word) == stop_word_counter.end()) {
+                std::string punc_removed;
+                std::remove_copy_if(word.begin(), word.end(), std::back_inserter(punc_removed), 
+                                    [](char c) { return std::ispunct(c); });
+                numWords++;
+                wordmap[punc_removed] += 1;
+            }
         }
+
+        for (auto word : wordmap) {
+            wordmap[word.first] = wordmap[word.first] / numWords;
+        }
+
+        return wordmap;
 }
 
-// def docPreProcessing(filepath):
-//     stopwords_dict = Counter(stopwords.words('english'))
-
-//     file = open(filepath, 'r', errors='replace')
-//     lines = file.readlines()    
-    
-//     doctext = ""
-//     for line in lines:
-//         line = line.translate(str.maketrans('', '', string.punctuation)).strip().lower()
-//         line = ' '.join([word for word in line.split() if word not in stopwords_dict])
-//         doctext += line
-        
-//     doctextList = doctext.split()
-//     return doctextList
-
-
-
 int main() {
-    std::vector<std::string> wordlist = {"henryzootorontoedu",
-    "henry",
-    "spencersubject",
-    "hlv",
-    "fred",
-    "prefab",
-    "space",
-    "stationarticle",
-    "c5133agzxnewscsouiucedu",
-    "jbh55289uxacsouiucedu",
-    "josh",
-    "hopkins",
-    "writestitan",
-    "iv",
-    "launches",
-    "aint",
-    "cheapgranted",
-    "thats",
-    "titan",
-    "ivs",
-    "bought",
-    "governemnt",
-    "titaniii",
-    "actually",
-    "cheapest",
-    "way",
-    "put",
-    "pound",
-    "space",
-    "us",
-    "expendablelauncherscase",
-    "rather",
-    "ironic",
-    "poorly",
-    "commercialmarket",
-    "single",
-    "titan",
-    "iii",
-    "orderproblem",
-    "commercial",
-    "titan",
-    "mm",
-    "made",
-    "little",
-    "attemptmarket",
-    "theyre",
-    "basically",
-    "happy",
-    "government",
-    "businessdont",
-    "want",
-    "learn",
-    "sell",
-    "commerciallysecondary",
-    "problem",
-    "bit",
-    "big",
-    "theyd",
-    "need",
-    "gomultisatellite",
-    "launches",
-    "la",
-    "ariane",
-    "complicates",
-    "marketingtask",
-    "quite",
-    "significantlyalso",
-    "problems",
-    "launch",
-    "facilities",
-    "wrong",
-    "timeget",
-    "started",
-    "properly",
-    "memory",
-    "serves",
-    "pad",
-    "used",
-    "marsobserver",
-    "launch",
-    "come",
-    "heavy",
-    "refurbishment",
-    "workprevented",
-    "launches",
-    "yearct",
-    "launches",
-    "mars",
-    "observer",
-    "onestranded",
-    "intelsat",
-    "least",
-    "one",
-    "brothers",
-    "reachedorbit",
-    "properlywork",
-    "one",
-    "mans",
-    "work",
-    "henry",
-    "spencer",
-    "u",
-    "toronto",
-    "zoologykipling",
-    "henryzootorontoedu",
-    "utzoohenry"
-    };
-    
+
     using namespace std::chrono;
 
-    auto durationList = std::vector<double>();
+    long double sum = 0;
+    long long int N = 10000;
 
-    for (int i = 0; i < 100; i++) {
+    auto start_global = high_resolution_clock::now();
+
+    for (long long int i = 0; i < N; i++) {
+
+        if (i % 1000 == 0) {
+            std::cout << i << std::endl;
+        }
+
         auto start = high_resolution_clock::now();
 
-        std::unordered_map<std::string, double> wordmap = tf(wordlist);
+        std::unordered_map<std::string, double> wordmap = tf("../testset/sci.space/60151");
 
         auto stop = high_resolution_clock::now();
 
         auto duration = duration_cast<microseconds>(stop - start);
 
-        durationList.push_back(duration.count());
+        sum += duration.count();
     }
 
-    double sum = 0;
-    for (auto duration : durationList) {
-        sum += duration;
-    }
+    auto stop_global = high_resolution_clock::now();
 
     std::cout << "Average time taken by function: "
-         << sum / durationList.size() << " microseconds" << std::endl;
+         << sum / N << " microseconds" << std::endl;
 
-};
+    auto duration_global = duration_cast<microseconds>(stop_global - start_global);
+
+    std::cout << "Total time taken by function: "
+         << duration_global.count() << " microseconds" << std::endl;
+
+    return 0;
+}
+
+
