@@ -9,113 +9,109 @@ import math
 import numpy as np
 import os
 
-def docPreProcessing(filepath):
-    stopwords_dict = Counter(stopwords.words('english'))
+class SearchEngine:
+    def __init__(self, source_path) -> None:
+        self.source_path = source_path
 
-    file = open(filepath, 'r', errors='replace')
-    lines = file.readlines()
-    
-    print(filepath)
+    def __fileCollector(self):
+        filelist = []
+        for root, dirs, files in os.walk(self.source_path):
+            for file in files:
+                if file.endswith('.txt'):
+                    filelist.append(os.path.join(root, file))
+        return filelist
 
-    stopwords_dict = Counter(stopwords.words('english'))
-    
-    
-    doctext = ""
-    for line in lines:
-        line = line.translate(str.maketrans('', '', string.punctuation)).strip().lower()
-        line = ' '.join([word for word in line.split() if word not in stopwords_dict])
-        doctext += line
+    def __docPreProcessing(self, filepath):
+        stopwords_dict = Counter(stopwords.words('english'))
+
+        file = open(filepath, 'r', errors='replace')
+        lines = file.readlines()
         
-    doctextList = doctext.split()
-    return doctextList
+        print(filepath)
 
-def tf(wordlist):
-    # global tfcount
-    # tfcount += 1
-    wordmap = {}
-    
-    for word in wordlist:
-        if word in wordmap:
-            wordmap[word] += 1
-        else:
-            wordmap[word] = 1
-            
-    
-    numWords = len(wordlist)
-    
-    for word in wordmap:
-        wordmap[word] = wordmap[word] / numWords
-    
-    return wordmap
+        stopwords_dict = Counter(stopwords.words('english'))
         
-
-def tfidfMapBuilder(doclist):
-    termset = set()
-
-    for doc in doclist:
-        termset.update(set(docPreProcessing(doc)))
-
-    df_columns = doclist.copy()
-    df_columns.append('df')
-    print(df_columns)
-
-    df = pd.DataFrame(0, index=list(termset), columns=df_columns)
-
-    for doc in doclist:
-        wordmap = tf(docPreProcessing(doc))
-        for term in wordmap:
-            df.at[term, doc] = wordmap[term]
-            df.at[term, 'df'] += 1
-
-    # print(df)
-
-    N = len(doclist)
-    # df['df'] = df['df'].apply(lambda x: math.log(N/x))
-
-    return df
-
-    # print(len(termset))
-
-def mapToMatrix(df, N):
-    df['df'] = df['df'].apply(lambda x: math.log(N/x))
-
-    for index, row in df.iterrows():
-        term_df = row['df']
-        row = row.apply(lambda x: x * term_df)
-    
-    df = df.drop(columns=['df'], axis=1)
-
-    return df
-
-def cosineSimilarityScore(q, D):
-    q_mag = np.sqrt(q.dot(q))
-    
-    qT = np.reshape(q, (1, q.shape[0]))
-    qTD = np.matmul(qT, D).reshape((D.shape[1], ))
-    
-    D_mags = np.sqrt(np.sum(D*D, axis=0))
-    divisors = q_mag * D_mags
-    cos_thetas = np.divide(qTD, divisors)
-    
-    cos_thetas = np.clip(cos_thetas, -1, 1)
-    
-    scores = np.arccos(cos_thetas)
-    
-    return scores
-    
-def fileCollector(path):
-    filelist = []
-    
-    for (root, dirs, files) in os.walk(path, topdown=True):
-        for file in files:
-            filelist.append(os.path.join(root, file))
+        
+        doctext = ""
+        for line in lines:
+            line = line.translate(str.maketrans('', '', string.punctuation)).strip().lower()
+            line = ' '.join([word for word in line.split() if word not in stopwords_dict])
+            doctext += line
             
-            if len(filelist) == 50:
-                return filelist
+        doctextList = doctext.split()
+        return doctextList
 
-    return filelist
+    def __tf(self, wordlist):
+        wordmap = {}
+        
+        for word in wordlist:
+            if word in wordmap:
+                wordmap[word] += 1
+            else:
+                wordmap[word] = 1
+                
+        
+        numWords = len(wordlist)
+        
+        for word in wordmap:
+            wordmap[word] = wordmap[word] / numWords
+        
+        return wordmap
+    
+    def __tfidfMapBuilder(self, doclist):
+        termset = set()
 
+        for doc in doclist:
+            termset.update(set(self.__docPreProcessing(doc)))
 
+        df_columns = doclist.copy()
+        df_columns.append('df')
+        print(df_columns)
+
+        df = pd.DataFrame(0, index=list(termset), columns=df_columns)
+
+        for doc in doclist:
+            wordmap = self.__tf(self.__docPreProcessing(doc))
+            for term in wordmap:
+                df.at[term, doc] = wordmap[term]
+                df.at[term, 'df'] += 1
+
+        # print(df)
+
+        N = len(doclist)
+        # df['df'] = df['df'].apply(lambda x: math.log(N/x))
+
+        return df
+
+        # print(len(termset))
+
+    def __mapToMatrix(self, df, N):
+        df['df'] = df['df'].apply(lambda x: math.log(N/x))
+
+        for index, row in df.iterrows():
+            term_df = row['df']
+            row = row.apply(lambda x: x * term_df)
+        
+        df = df.drop(columns=['df'], axis=1)
+
+        return df
+    
+    def __cosineSimilarityScore(self, q, D):
+        q_mag = np.sqrt(q.dot(q))
+        
+        qT = np.reshape(q, (1, q.shape[0]))
+        qTD = np.matmul(qT, D).reshape((D.shape[1], ))
+        
+        D_mags = np.sqrt(np.sum(D*D, axis=0))
+        divisors = q_mag * D_mags
+        cos_thetas = np.divide(qTD, divisors)
+        
+        cos_thetas = np.clip(cos_thetas, -1, 1)
+        
+        scores = np.arccos(cos_thetas)
+        
+        return scores
+    
 doclist = []
 
 doclist.append('query.txt')
