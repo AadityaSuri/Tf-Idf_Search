@@ -12,14 +12,18 @@ import os
 class SearchEngine:
     def __init__(self, source_path) -> None:
         self.source_path = source_path
+        filelist = self.__fileCollector(self.source_path)
 
-    def __fileCollector(self):
+
+    def __fileCollector(self, source_path):
         filelist = []
         for root, dirs, files in os.walk(self.source_path):
             for file in files:
                 if file.endswith('.txt'):
                     filelist.append(os.path.join(root, file))
         return filelist
+    
+
 
     def __docPreProcessing(self, filepath):
         stopwords_dict = Counter(stopwords.words('english'))
@@ -40,6 +44,8 @@ class SearchEngine:
             
         doctextList = doctext.split()
         return doctextList
+    
+
 
     def __tf(self, wordlist):
         wordmap = {}
@@ -57,6 +63,8 @@ class SearchEngine:
             wordmap[word] = wordmap[word] / numWords
         
         return wordmap
+    
+
     
     def __tfidfMapBuilder(self, doclist):
         termset = set()
@@ -76,14 +84,11 @@ class SearchEngine:
                 df.at[term, doc] = wordmap[term]
                 df.at[term, 'df'] += 1
 
-        # print(df)
-
         N = len(doclist)
-        # df['df'] = df['df'].apply(lambda x: math.log(N/x))
-
         return df
 
-        # print(len(termset))
+
+
 
     def __mapToMatrix(self, df, N):
         df['df'] = df['df'].apply(lambda x: math.log(N/x))
@@ -95,6 +100,8 @@ class SearchEngine:
         df = df.drop(columns=['df'], axis=1)
 
         return df
+    
+
     
     def __cosineSimilarityScore(self, q, D):
         q_mag = np.sqrt(q.dot(q))
@@ -112,28 +119,30 @@ class SearchEngine:
         
         return scores
     
-doclist = []
 
-doclist.append('query.txt')
+    
+# doclist = []
 
-doclist.extend(fileCollector(r'../testset/sci.space'))
+# doclist.append('query.txt')
 
-tfidfDataFrame = mapToMatrix(tfidfMapBuilder(doclist), len(doclist))
+# doclist.extend(fileCollector(r'../testset/sci.space'))
+
+# tfidfDataFrame = mapToMatrix(tfidfMapBuilder(doclist), len(doclist))
 
 
-doc_tfidfMatrix = tfidfDataFrame.loc[:, tfidfDataFrame.columns != 'query.txt'].to_numpy().round(decimals=4)
-query_vector = tfidfDataFrame.loc[:, "query.txt"].to_numpy().round(decimals=4)
+# doc_tfidfMatrix = tfidfDataFrame.loc[:, tfidfDataFrame.columns != 'query.txt'].to_numpy().round(decimals=4)
+# query_vector = tfidfDataFrame.loc[:, "query.txt"].to_numpy().round(decimals=4)
 
-scorelist = cosineSimilarityScore(query_vector, doc_tfidfMatrix)
-scoremap = {}
+# scorelist = cosineSimilarityScore(query_vector, doc_tfidfMatrix)
+# scoremap = {}
 
-for index, score in enumerate(scorelist):
-    scoremap[tfidfDataFrame.columns[index + 1]] = score
+# for index, score in enumerate(scorelist):
+#     scoremap[tfidfDataFrame.columns[index + 1]] = score
 
-scoremap = dict(sorted(scoremap.items(), key=lambda item:item[1]))
+# scoremap = dict(sorted(scoremap.items(), key=lambda item:item[1]))
 
-for doc in list(scoremap.items())[:5]:
-    print(doc)
+# for doc in list(scoremap.items())[:5]:
+#     print(doc)
 
 
 
