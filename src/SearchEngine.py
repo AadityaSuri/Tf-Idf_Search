@@ -13,21 +13,24 @@ import sqlite3
 class SearchEngine:
     def __init__(self, source_path) -> None:
         self.source_path = source_path
-        doclist = self.__fileCollector(self.source_path)
+        self.doclist = self.__fileCollector()
 
-        tfidfMap = self.__tfidfMapBuilder(doclist)
+        tfidfMap = self.__tfidfMapBuilder()
         database = source_path + "/tfidfmap.db"
         conn = sqlite3.connect(database)
         tfidfMap.to_sql('tfidfmap', conn, if_exists='replace')
         conn.close()
 
 
-    def __fileCollector(self, source_path):
+    def __fileCollector(self):
         filelist = []
         for root, dirs, files in os.walk(self.source_path):
             for file in files:
-                if file.endswith('.txt'):
-                    filelist.append(os.path.join(root, file))
+                filelist.append(os.path.join(root, file))
+
+                if len(filelist) == 50:
+                    return filelist
+
         return filelist
     
 
@@ -38,8 +41,6 @@ class SearchEngine:
         file = open(filepath, 'r', errors='replace')
         lines = file.readlines()
         
-        print(filepath)
-
         stopwords_dict = Counter(stopwords.words('english'))
         
         
@@ -48,6 +49,8 @@ class SearchEngine:
             line = line.translate(str.maketrans('', '', string.punctuation)).strip().lower()
             line = ' '.join([word for word in line.split() if word not in stopwords_dict])
             doctext += line
+
+        file.close()
             
         doctextList = doctext.split()
         return doctextList
@@ -73,25 +76,24 @@ class SearchEngine:
     
 
     
-    def __tfidfMapBuilder(self, doclist):
+    def __tfidfMapBuilder(self):
         termset = set()
 
-        for doc in doclist:
+        for doc in self.doclist:
             termset.update(set(self.__docPreProcessing(doc)))
 
-        df_columns = doclist.copy()
+        df_columns = self.doclist.copy()
         df_columns.append('df')
         # print(df_columns)
 
         df = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
-        for doc in doclist:
+        for doc in self.doclist:
             wordmap = self.__tf(self.__docPreProcessing(doc))
             for term in wordmap:
                 df.at[term, doc] = wordmap[term]
                 df.at[term, 'df'] += 1
 
-        N = len(doclist)
         return df
 
 
