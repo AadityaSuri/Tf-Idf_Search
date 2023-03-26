@@ -21,6 +21,21 @@ class SearchEngine:
         tfidfMap.to_sql('tfidfmap', conn, if_exists='replace')
         conn.close()
 
+    def __addQuery(self, query):
+        database = self.source_path + "/tfidfmap.db"
+        conn = sqlite3.connect(database)
+        tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn)
+        conn.close()
+
+        query_tf = self.__tf(self.__docPreProcessing(query))
+
+        for term in query_tf:
+            # add term to tfidfMap dataframe if not present
+            if term not in tfidfMap.index:
+                tfidfMap.loc[term] = 0
+                
+            
+
 
     def __fileCollector(self):
         filelist = []
@@ -82,8 +97,9 @@ class SearchEngine:
         for doc in self.doclist:
             termset.update(set(self.__docPreProcessing(doc)))
 
-        df_columns = self.doclist.copy()
         df_columns.append('df')
+        df_columns = self.doclist.copy()
+       
         # print(df_columns)
 
         df = pd.DataFrame(0, index=list(termset), columns=df_columns)
