@@ -50,6 +50,12 @@
         "typeinfo": "cpp",
         "fstream": "cpp",
         "iomanip": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "complex": "cpp",
+        "cstring": "cpp",
+        "forward_list": "cpp",
+        "valarray": "cpp"
     }
 }
