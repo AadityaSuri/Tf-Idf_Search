@@ -27,14 +27,29 @@ class SearchEngine:
         tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn)
         conn.close()
 
-        query_tf = self.__tf(self.__docPreProcessing(query))
+        tfidfMap = tfidfMap.drop(columns=tfidfMap.columns[0], axis=1, inplace=True)
+
+        queryfile = open('query.txt', 'w')
+        queryfile.write(query)
+        queryfile.close()
+
+        query_tf = self.__tf(self.__docPreProcessing('query.txt'))
+
+        tfidfMap['query'] = 0
 
         for term in query_tf:
-            # add term to tfidfMap dataframe if not present
-            if term not in tfidfMap.index:
-                tfidfMap.loc[term] = 0
-                
-            
+            if term in tfidfMap.index:
+                tfidfMap.at[term, 'query'] = query_tf[term]
+                tfidfMap.at[term, 'df'] += 1
+            else:
+                new_row = pd.DataFrame(data={'df': 1, 'query': query_tf[term]}, index=[term])
+                tfidfMap = pd.concat([tfidfMap, new_row])
+
+        return tfidfMap
+    
+    def printmap(self):
+        print(self.__addQuery("EM Radiation in the orion belt"))
+
 
 
     def __fileCollector(self):
@@ -57,8 +72,7 @@ class SearchEngine:
         lines = file.readlines()
         
         stopwords_dict = Counter(stopwords.words('english'))
-        
-        
+    
         doctext = ""
         for line in lines:
             line = line.translate(str.maketrans('', '', string.punctuation)).strip().lower()
@@ -69,7 +83,7 @@ class SearchEngine:
             
         doctextList = doctext.split()
         return doctextList
-    
+
 
 
     def __tf(self, wordlist):
@@ -95,13 +109,11 @@ class SearchEngine:
         termset = set()
 
         for doc in self.doclist:
-            termset.update(set(self.__docPreProcessing(doc)))
+            termset.update(set(self.__tf(self.__docPreProcessing(doc)).keys()))
 
-        df_columns.append('df')
-        df_columns = self.doclist.copy()
+        df_columns = ['df']
+        df_columns.extend(self.doclist)
        
-        # print(df_columns)
-
         df = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
         for doc in self.doclist:
