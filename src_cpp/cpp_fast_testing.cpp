@@ -8,21 +8,9 @@
 #include <iomanip>
 
 
-std::unordered_map<std::string, double> tf(std::vector<std::string> wordlist) {
-    std::unordered_map<std::string, double> wordmap;
-
-    for (auto word : wordlist) {
-        wordmap[word] += 1;
-    }
-    int numWords = wordlist.size();
-    for (auto word : wordmap) {
-        wordmap[word.first] = wordmap[word.first] / numWords;
-    }
-    return wordmap;
-} 
-
 std::unordered_map<std::string, double> tf(std::string filepath) {
-    std::vector<std::string> stop_words = {"i",
+    std::vector<std::string> stop_words = {
+        "i",
         "me",
         "my",
         "myself",
@@ -203,7 +191,7 @@ std::unordered_map<std::string, double> tf(std::string filepath) {
         "wouldn't"};
 
         std::unordered_map<std::string, int> stop_word_counter;
-        for (auto word : stop_words) {
+        for (std::string word : stop_words) {
             stop_word_counter[word] = 0;
         }
 
@@ -214,18 +202,23 @@ std::unordered_map<std::string, double> tf(std::string filepath) {
         std::unordered_map<std::string, double> wordmap;
         int numWords = 0;
         while (file >> word) {
-            if (stop_word_counter.find(word) == stop_word_counter.end()) {
-                std::string punc_removed;
-                std::remove_copy_if(word.begin(), word.end(), std::back_inserter(punc_removed), 
-                                    [](char c) { return std::ispunct(c); });
-                numWords++;
-                wordmap[punc_removed] += 1;
+            std::transform(word.begin(), word.end(), word.begin(),
+                           [](unsigned char c) { return std::tolower(c); });
+
+            std::string sanitized;
+            std::remove_copy_if(word.begin(), word.end(), std::back_inserter(sanitized), 
+                                [](char c) { return std::ispunct(c); });
+
+            if (stop_word_counter.find(sanitized) == stop_word_counter.end() && sanitized.length() > 0) {
+                wordmap[sanitized] += 1;
+                numWords += 1;
             }
         }
 
-        for (auto word : wordmap) {
-            wordmap[word.first] = wordmap[word.first] / numWords;
-        }
+        std::for_each(wordmap.begin(), wordmap.end(), 
+              [numWords](std::pair<const std::string, double>& p) {
+                p.second = p.second / numWords;
+              });
 
         return wordmap;
 }
@@ -267,6 +260,12 @@ int main() {
          << duration_global.count() << " microseconds" << std::endl;
 
     return 0;
+
+//     std::unordered_map<std::string, double> wordmap = tf("../testset/sci.space/60151");
+
+//     for (auto word : wordmap) {
+//         std::cout << word.first << " " << word.second << std::endl;
+//     }
 }
 
 
