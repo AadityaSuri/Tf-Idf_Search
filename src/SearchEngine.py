@@ -8,11 +8,18 @@ from nltk.corpus import stopwords
 import math
 import numpy as np
 import os
+import sqlite3
 
 class SearchEngine:
     def __init__(self, source_path) -> None:
         self.source_path = source_path
-        filelist = self.__fileCollector(self.source_path)
+        doclist = self.__fileCollector(self.source_path)
+
+        tfidfMap = self.__tfidfMapBuilder(doclist)
+        database = source_path + "/tfidfmap.db"
+        conn = sqlite3.connect(database)
+        tfidfMap.to_sql('tfidfmap', conn, if_exists='replace')
+        conn.close()
 
 
     def __fileCollector(self, source_path):
@@ -74,7 +81,7 @@ class SearchEngine:
 
         df_columns = doclist.copy()
         df_columns.append('df')
-        print(df_columns)
+        # print(df_columns)
 
         df = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
