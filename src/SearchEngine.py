@@ -15,25 +15,43 @@ class SearchEngine:
         self.source_path = source_path
         self.doclist = self.__fileCollector()
 
-        tfidfMap = self.__tfidfMapBuilder()
+        tfidfMap = self.__tfidfMapBuilder()[0]
         database = source_path + "/tfidfmap.db"
         conn = sqlite3.connect(database)
         tfidfMap.to_sql('tfidfmap', conn, if_exists='replace')
         conn.close()
 
+
+    def search(self, query):
+        addQuery_res = self.__addQuery(query)
+        tfidfMap = addQuery_res[0]
+        docNmap = addQuery_res[1]
+
+        tfidfMatrix = self.__mapToMatrix(tfidfMap, len(self.doclist) + 1, docNmap).to_numpy().round(decimals=4)
+        print(tfidfMatrix)
+
+        # doc_tfidfMatrix = tfidfMatrix.loc[:, tfidfMap.columns != 'query'].to_numpy().round(decimals=4)
+        # query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
+
+        # scorelist = self.__cosineSimilarityScore(query_vector, doc_tfidfMatrix)
+
+        # return scorelist
+    
+
+
     def __addQuery(self, query):
         database = self.source_path + "/tfidfmap.db"
         conn = sqlite3.connect(database)
-        tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn)
+        tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn, index_col='index')
         conn.close()
-
-        tfidfMap = tfidfMap.drop(columns=tfidfMap.columns[0], axis=1, inplace=True)
 
         queryfile = open('query.txt', 'w')
         queryfile.write(query)
         queryfile.close()
 
-        query_tf = self.__tf(self.__docPreProcessing('query.txt'))
+        tf_res = self.__tf(self.__docPreProcessing('query.txt'))
+        query_tf = tf_res[0]
+        docNmap = tf_res[1]
 
         tfidfMap['query'] = 0
 
@@ -45,10 +63,13 @@ class SearchEngine:
                 new_row = pd.DataFrame(data={'df': 1, 'query': query_tf[term]}, index=[term])
                 tfidfMap = pd.concat([tfidfMap, new_row])
 
-        return tfidfMap
+        return (tfidfMap, docNmap)
     
     def printmap(self):
-        print(self.__addQuery("EM Radiation in the orion belt"))
+        df = self.__addQuery("EM Radiation in the orion belt")
+        df.to_csv('tfidfmap.csv')
+        print(df)
+        # print(df.columns)
 
 
 
@@ -98,18 +119,21 @@ class SearchEngine:
         
         numWords = len(wordlist)
         
-        for word in wordmap:
-            wordmap[word] = wordmap[word] / numWords
+        # for word in wordmap:
+        #     wordmap[word] = wordmap[word] / numWords
         
-        return wordmap
+        return (wordmap, len(wordlist))
     
 
     
     def __tfidfMapBuilder(self):
         termset = set()
+        docNmap = {}
 
         for doc in self.doclist:
-            termset.update(set(self.__tf(self.__docPreProcessing(doc)).keys()))
+            tf_res = self.__tf(self.__docPreProcessing(doc))
+            docNmap[doc] = tf_res[1]
+            termset.update(set(tf_res[0].keys()))
 
         df_columns = ['df']
         df_columns.extend(self.doclist)
@@ -117,18 +141,22 @@ class SearchEngine:
         df = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
         for doc in self.doclist:
-            wordmap = self.__tf(self.__docPreProcessing(doc))
+            wordmap = self.__tf(self.__docPreProcessing(doc))[0]
             for term in wordmap:
                 df.at[term, doc] = wordmap[term]
                 df.at[term, 'df'] += 1
 
-        return df
+        return (df, docNmap)
 
 
 
 
-    def __mapToMatrix(self, df, N):
+    def __mapToMatrix(self, df, N, docNmap):
         df['df'] = df['df'].apply(lambda x: math.log(N/x))
+
+        for col in df.columns:
+            if col != 'df':
+                df[col] = df[col].apply(lambda x: x/docNmap[col])
 
         for index, row in df.iterrows():
             term_df = row['df']

@@ -11,5 +11,5 @@ engine = SearchEngine(r'../testset/sci.space')
 # tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn)
 # conn.close()
 
-engine.printmap()
+engine.search('moon')
 
