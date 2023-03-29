@@ -13,22 +13,31 @@ import sqlite3
 class SearchEngine:
     def __init__(self, source_path) -> None:
         self.source_path = source_path
-        self.doclist = self.__fileCollector()
+        self.__doclist = []
+        self.__docNmap = {}
 
-        tfidfMap = self.__tfidfMapBuilder()[0]
-        database = source_path + "/tfidfmap.db"
-        conn = sqlite3.connect(database)
-        tfidfMap.to_sql('tfidfmap', conn, if_exists='replace')
-        conn.close()
+
+        if not os.path.exists(source_path + "/tfidfmap.db"):
+            doclist = self.__fileCollector()
+            docNmap = {}
+            tfidfMap = self.__tfidfMapBuilder()
+            database = source_path + "/tfidfmap.db"
+            conn = sqlite3.connect(database)
+            tfidfMap.to_sql('tfidfmap', conn, if_exists='replace')
+            conn.close()
+            print("CHECKPOINT: tfidfmap.db created")
+
+        # read tfidfmap.db and calculate __docllist and __docNmap
+
 
 
     def search(self, query):
         addQuery_res = self.__addQuery(query)
-        tfidfMap = addQuery_res[0]
-        docNmap = addQuery_res[1]
+        tfidfMap = addQuery_res
+        # docNmap = addQuery_res[1]
 
-        tfidfMatrix = self.__mapToMatrix(tfidfMap, len(self.doclist) + 1, docNmap).to_numpy().round(decimals=4)
-        print(tfidfMatrix)
+        tfidfMatrix = self.__mapToMatrix(tfidfMap)
+        tfidfMatrix.to_csv('tfidfMatrix.csv')
 
         # doc_tfidfMatrix = tfidfMatrix.loc[:, tfidfMap.columns != 'query'].to_numpy().round(decimals=4)
         # query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
@@ -50,8 +59,10 @@ class SearchEngine:
         queryfile.close()
 
         tf_res = self.__tf(self.__docPreProcessing('query.txt'))
-        query_tf = tf_res[0]
-        docNmap = tf_res[1]
+        query_tf = tf_res
+        self.__docNmap['query'] = sum(tf_res.values())
+        self.__doclist.append('query')
+        # docNmap = tf_res[1]
 
         tfidfMap['query'] = 0
 
@@ -63,7 +74,9 @@ class SearchEngine:
                 new_row = pd.DataFrame(data={'df': 1, 'query': query_tf[term]}, index=[term])
                 tfidfMap = pd.concat([tfidfMap, new_row])
 
-        return (tfidfMap, docNmap)
+        return tfidfMap
+    
+
     
     def printmap(self):
         df = self.__addQuery("EM Radiation in the orion belt")
@@ -117,46 +130,47 @@ class SearchEngine:
                 wordmap[word] = 1
                 
         
-        numWords = len(wordlist)
+        # numWords = len(wordlist)
         
         # for word in wordmap:
         #     wordmap[word] = wordmap[word] / numWords
         
-        return (wordmap, len(wordlist))
+        return wordmap
     
 
     
     def __tfidfMapBuilder(self):
         termset = set()
-        docNmap = {}
+        # docNmap = {}
 
-        for doc in self.doclist:
+        for doc in self.__doclist:
             tf_res = self.__tf(self.__docPreProcessing(doc))
-            docNmap[doc] = tf_res[1]
-            termset.update(set(tf_res[0].keys()))
+            self.__docNmap[doc] = sum(tf_res.values())
+            termset.update(set(tf_res.keys()))
 
         df_columns = ['df']
-        df_columns.extend(self.doclist)
+        df_columns.extend(self.__doclist)
        
         df = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
-        for doc in self.doclist:
-            wordmap = self.__tf(self.__docPreProcessing(doc))[0]
+        for doc in self.__doclist:
+            wordmap = self.__tf(self.__docPreProcessing(doc))
             for term in wordmap:
                 df.at[term, doc] = wordmap[term]
                 df.at[term, 'df'] += 1
 
-        return (df, docNmap)
+        return df
 
 
 
 
-    def __mapToMatrix(self, df, N, docNmap):
+    def __mapToMatrix(self, df):
+        N = len(self.__doclist)
         df['df'] = df['df'].apply(lambda x: math.log(N/x))
 
         for col in df.columns:
             if col != 'df':
-                df[col] = df[col].apply(lambda x: x/docNmap[col])
+                df[col] = df[col].apply(lambda x: x/self.__docNmap[col])
 
         for index, row in df.iterrows():
             term_df = row['df']

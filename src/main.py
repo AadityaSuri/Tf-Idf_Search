@@ -6,10 +6,11 @@ import os
 
 engine = SearchEngine(r'../testset/sci.space')
 
-# database = r'../testset/sci.space/tfidfmap.db'
-# conn = sqlite3.connect(database)
-# tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn)
-# conn.close()
+database = r'../testset/sci.space/tfidfmap.db'
+conn = sqlite3.connect(database)
+tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn)
+conn.close()
 
-engine.search('moon')
+# engine.printmap()
+engine.search('EM radiation in the orion belt')
 
