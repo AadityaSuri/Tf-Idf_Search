@@ -15,38 +15,34 @@ import sqlite3
 class SearchEngine:
     def __init__(self, source_path) -> None:
         self.source_path = source_path
-        database = source_path + "/tfidfmap.db"
+        self.database = source_path + "/searchUtils"
 
 
-        if not os.path.exists(database):
+        if not os.path.exists(self.database):
+            os.mkdir(self.database)
             self.__doclist = self.__fileCollector()
             self.__docNmap = {}
             self.__tfidfMapBuilder()
-            # database = source_path + "/tfidfmap.db"
-            conn = sqlite3.connect(database)
+            conn = sqlite3.connect(self.database + '/tfidfmap.db')
             self.__tfidfMap.to_sql('tfidfmap', conn, if_exists='replace')
             conn.close()
             print("CHECKPOINT: tfidfmap.db created")
         else:
-            # database = source_path + "/tfidfmap.db"
-            conn = sqlite3.connect(database)
+            conn = sqlite3.connect(self.database + '/tfidfmap.db')
             self.__tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn, index_col='index')
             conn.close()
+
             # load docNmap
-            with open(self.source_path + '/docNmap.json', 'r') as f:
+            with open(self.database + '/docNmap.json', 'r') as f:
                 self.__docNmap = json.load(f)
             
             self.__doclist = list(self.__docNmap.keys())
-            # print("CHECKPOINT: tfidfmap.db loaded")
 
-        # read tfidfmap.db and calculate __docllist and __docNmap
 
 
 
     def search(self, query):
         self.__addQuery(query)
-        # tfidfMap = addQuery_res
-        # docNmap = addQuery_res[1]
 
         tfidfMatrix = self.__mapToMatrix()
         tfidfMatrix.to_csv('tfidfMatrix.csv')
@@ -72,10 +68,7 @@ class SearchEngine:
         # return scorelist
     
 
-
     def __addQuery(self, query):
-
-
         queryfile = open('query.txt', 'w')
         queryfile.write(query)
         queryfile.close()
@@ -84,7 +77,6 @@ class SearchEngine:
         query_tf = tf_res
         self.__docNmap['query'] = sum(tf_res.values())
         self.__doclist.append('query')
-        # docNmap = tf_res[1]
 
         self.__tfidfMap['query'] = 0
 
@@ -93,22 +85,26 @@ class SearchEngine:
                 self.__tfidfMap.at[term, 'query'] = query_tf[term]
                 self.__tfidfMap.at[term, 'df'] += 1
             else:
-                new_row = pd.DataFrame(data={'df': 1, 'query': query_tf[term]}, index=[term])
+                new_row = pd.DataFrame({'df': [1], 'query': [query_tf[term]]}, index=[term])
+                for column in self.__tfidfMap.columns:
+                    if column != 'query':
+                        new_row[column] = 0
                 self.__tfidfMap = pd.concat([self.__tfidfMap, new_row])
+
 
         # return tfidfMap
     
 
     
-    def printmap(self):
-        database = self.source_path + "/tfidfmap.db"
-        conn = sqlite3.connect(database)
-        df = pd.read_sql_query("SELECT * FROM tfidfmap", conn, index_col='index')
-        conn.close()
-        self.__addQuery("EM Radiation in the orion belt")
-        df.to_csv('tfidfmap.csv')
-        print(df)
-        # print(df.columns)
+    # def printmap(self):
+    #     database = self.source_path + "/tfidfmap.db"
+    #     conn = sqlite3.connect(database)
+    #     df = pd.read_sql_query("SELECT * FROM tfidfmap", conn, index_col='index')
+    #     conn.close()
+    #     self.__addQuery("EM Radiation in the orion belt")
+    #     df.to_csv('tfidfmap.csv')
+    #     print(df)
+    #     # print(df.columns)
 
 
 
@@ -177,7 +173,7 @@ class SearchEngine:
             self.__docNmap[doc] = sum(tf_res.values())
             termset.update(set(tf_res.keys()))
 
-        with open(self.source_path + '/docNmap.json', 'w') as f:
+        with open(self.database + '/docNmap.json', 'w') as f:
             json.dump(self.__docNmap, f, indent=4)
 
         df_columns = ['df']
@@ -200,7 +196,7 @@ class SearchEngine:
         matrix = copy.copy(self.__tfidfMap)
 
         N = len(self.__doclist)
-        matrix['df'] = matrix['df'].apply(lambda x: math.log(N/x))
+        matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)
 
         for col in matrix.columns:
             if col != 'df':
@@ -233,30 +229,6 @@ class SearchEngine:
         
         return scores
     
-
-    
-# doclist = []
-
-# doclist.append('query.txt')
-
-# doclist.extend(fileCollector(r'../testset/sci.space'))
-
-# tfidfDataFrame = mapToMatrix(tfidfMapBuilder(doclist), len(doclist))
-
-
-# doc_tfidfMatrix = tfidfDataFrame.loc[:, tfidfDataFrame.columns != 'query.txt'].to_numpy().round(decimals=4)
-# query_vector = tfidfDataFrame.loc[:, "query.txt"].to_numpy().round(decimals=4)
-
-# scorelist = cosineSimilarityScore(query_vector, doc_tfidfMatrix)
-# scoremap = {}
-
-# for index, score in enumerate(scorelist):
-#     scoremap[tfidfDataFrame.columns[index + 1]] = score
-
-# scoremap = dict(sorted(scoremap.items(), key=lambda item:item[1]))
-
-# for doc in list(scoremap.items())[:5]:
-#     print(doc)
 
 
 

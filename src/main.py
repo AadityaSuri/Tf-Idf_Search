@@ -12,5 +12,5 @@ engine = SearchEngine(r'../testset/samples')
 # conn.close()
 
 # engine.printmap()
-engine.search('Birds and Animals')
+engine.search('Hummingbirds') 
 
