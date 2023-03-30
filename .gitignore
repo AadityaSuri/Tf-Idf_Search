@@ -3,3 +3,4 @@ testset/
 *.csv
 query.txt
 *.db
+*.json
