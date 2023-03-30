@@ -33,7 +33,7 @@ class SearchEngine:
             self.__tfidfMap = pd.read_sql_query("SELECT * FROM tfidfmap", conn, index_col='index')
             conn.close()
             # load docNmap
-            with open('docNmap.json', 'r') as f:
+            with open(self.source_path + '/docNmap.json', 'r') as f:
                 self.__docNmap = json.load(f)
             
             self.__doclist = list(self.__docNmap.keys())
@@ -116,7 +116,10 @@ class SearchEngine:
         filelist = []
         for root, dirs, files in os.walk(self.source_path):
             for file in files:
-                filelist.append(os.path.join(root, file))
+                if file.endswith(".json") or file.endswith(".db"):
+                    continue
+                else:
+                    filelist.append(os.path.join(root, file))
 
                 if len(filelist) == 50:
                     return filelist
@@ -174,7 +177,7 @@ class SearchEngine:
             self.__docNmap[doc] = sum(tf_res.values())
             termset.update(set(tf_res.keys()))
 
-        with open('docNmap.json', 'w') as f:
+        with open(self.source_path + '/docNmap.json', 'w') as f:
             json.dump(self.__docNmap, f, indent=4)
 
         df_columns = ['df']

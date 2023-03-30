@@ -4,7 +4,7 @@ import sqlite3
 import numpy as np
 import os
 
-engine = SearchEngine(r'../testset/sci.space')
+engine = SearchEngine(r'../testset/samples')
 
 # database = r'../testset/sci.space/tfidfmap.db'
 # conn = sqlite3.connect(database)
@@ -12,5 +12,5 @@ engine = SearchEngine(r'../testset/sci.space')
 # conn.close()
 
 # engine.printmap()
-engine.search('Moon landing')
+engine.search('Birds and Animals')
 
