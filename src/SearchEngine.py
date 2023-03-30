@@ -51,10 +51,23 @@ class SearchEngine:
         tfidfMatrix = self.__mapToMatrix()
         tfidfMatrix.to_csv('tfidfMatrix.csv')
 
-        # doc_tfidfMatrix = tfidfMatrix.loc[:, tfidfMap.columns != 'query'].to_numpy().round(decimals=4)
-        # query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
+        doc_tfidfMatrix = tfidfMatrix.loc[:, tfidfMatrix.columns != 'query'].to_numpy().round(decimals=4)
+        query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
 
-        # scorelist = self.__cosineSimilarityScore(query_vector, doc_tfidfMatrix)
+        scorelist = self.__cosineSimilarityScore(query_vector, doc_tfidfMatrix)
+
+        scoremap = {}
+
+        for index, score in enumerate(scorelist):
+            scoremap[tfidfMatrix.columns[index]] = score
+
+        scoremap = dict(sorted(scoremap.items(), key=lambda item:item[1]))
+
+        for doc in list(scoremap.items())[:5]:
+            print(doc)
+
+        # return scoremap.items()[5]
+
 
         # return scorelist
     
