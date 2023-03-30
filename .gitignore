@@ -1,6 +1,6 @@
 __pycache__/
-testset/
 *.csv
 query.txt
 *.db
 *.json
+searchUtils/
