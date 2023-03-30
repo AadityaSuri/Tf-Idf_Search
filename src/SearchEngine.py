@@ -62,10 +62,6 @@ class SearchEngine:
         for doc in list(scoremap.items())[:5]:
             print(doc)
 
-        # return scoremap.items()[5]
-
-
-        # return scorelist
     
 
     def __addQuery(self, query):
@@ -90,21 +86,6 @@ class SearchEngine:
                     if column != 'query':
                         new_row[column] = 0
                 self.__tfidfMap = pd.concat([self.__tfidfMap, new_row])
-
-
-        # return tfidfMap
-    
-
-    
-    # def printmap(self):
-    #     database = self.source_path + "/tfidfmap.db"
-    #     conn = sqlite3.connect(database)
-    #     df = pd.read_sql_query("SELECT * FROM tfidfmap", conn, index_col='index')
-    #     conn.close()
-    #     self.__addQuery("EM Radiation in the orion belt")
-    #     df.to_csv('tfidfmap.csv')
-    #     print(df)
-    #     # print(df.columns)
 
 
 
@@ -153,12 +134,6 @@ class SearchEngine:
                 wordmap[word] += 1
             else:
                 wordmap[word] = 1
-                
-        
-        # numWords = len(wordlist)
-        
-        # for word in wordmap:
-        #     wordmap[word] = wordmap[word] / numWords
         
         return wordmap
     
@@ -166,7 +141,6 @@ class SearchEngine:
     
     def __tfidfMapBuilder(self):
         termset = set()
-        # docNmap = {}
 
         for doc in self.__doclist:
             tf_res = self.__tf(self.__docPreProcessing(doc))
@@ -186,8 +160,6 @@ class SearchEngine:
             for term in wordmap:
                 self.__tfidfMap.at[term, doc] = wordmap[term]
                 self.__tfidfMap.at[term, 'df'] += 1
-
-        # return df
 
 
 
