@@ -37,7 +37,7 @@ class SearchEngine:
                 self.__docNmap = json.load(f)
             
             self.__doclist = list(self.__docNmap.keys())
-            print("CHECKPOINT: tfidfmap.db loaded")
+            # print("CHECKPOINT: tfidfmap.db loaded")
 
         # read tfidfmap.db and calculate __docllist and __docNmap
 

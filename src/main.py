@@ -12,5 +12,5 @@ engine = SearchEngine(r'../testset/sci.space')
 # conn.close()
 
 # engine.printmap()
-engine.search('EM radiation in the orion belt')
+engine.search('Moon landing')
 
