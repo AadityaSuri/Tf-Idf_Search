@@ -1,10 +1,6 @@
 from SearchEngine import SearchEngine
-import pandas as pd
-import sqlite3
-import numpy as np
-import os
 
-engine = SearchEngine(r'../testset/samples')
+engine = SearchEngine(r'../testset/sci.space')
 
 # database = r'../testset/sci.space/tfidfmap.db'
 # conn = sqlite3.connect(database)
@@ -12,5 +8,5 @@ engine = SearchEngine(r'../testset/samples')
 # conn.close()
 
 # engine.printmap()
-engine.search('Hummingbirds') 
+engine.search('EM radiation from the sun')
 
