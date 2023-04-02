@@ -8,5 +8,5 @@ engine = SearchEngine(r'../testset/sci.space')
 # conn.close()
 
 # engine.printmap()
-engine.search('EM radiation from the sun')
+engine.search('Moon Landing is a hoax')
 

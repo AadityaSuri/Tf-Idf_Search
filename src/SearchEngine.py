@@ -1,16 +1,22 @@
 
 import pandas as pd
 import string
-import nltk
-nltk.download('stopwords')
+# import nltk
 from collections import Counter
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 import math
 import numpy as np
 import os
 import json
 import copy
 import sqlite3
+
+# uncomment the following line if you are runnning this script for the first time or if you don't have the stopwords package
+
+# import nltk
+# nltk.download('stopwords')
+
 
 class SearchEngine:
     def __init__(self, source_path) -> None:
@@ -46,7 +52,7 @@ class SearchEngine:
 
         tfidfMatrix = self.__mapToMatrix()
         # tfidfMatrix.to_csv('tfidfMatrix.csv')
-        print(tfidfMatrix.index)
+        # print(tfidfMatrix.index)
 
         doc_tfidfMatrix = tfidfMatrix.loc[:, tfidfMatrix.columns != 'query'].to_numpy().round(decimals=4)
         query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
@@ -108,8 +114,10 @@ class SearchEngine:
 
         return filelist
     
+    
     def __docPreProcessing(self, filepath):
         stopwords_dict = Counter(stopwords.words('english'))
+        ps = PorterStemmer()
 
 
         docTextList = []
@@ -118,7 +126,7 @@ class SearchEngine:
                 for word in line.split():
                     word = word.translate(str.maketrans('', '', string.punctuation)).strip().lower()
                     if word not in stopwords_dict and word != '':
-                        docTextList.append(word)
+                        docTextList.append(ps.stem(word))
 
         return docTextList
 
