@@ -1,6 +1,7 @@
 __pycache__/
 *.csv
-query.txt
 *.db
 *.json
 searchUtils/
+query.txt
+.vscode/
