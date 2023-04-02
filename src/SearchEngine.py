@@ -1,16 +1,22 @@
 
 import pandas as pd
 import string
-import nltk
-nltk.download('stopwords')
+# import nltk
 from collections import Counter
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 import math
 import numpy as np
 import os
 import json
 import copy
 import sqlite3
+
+# uncomment the following line if you are runnning this script for the first time or if you don't have the stopwords package
+
+# import nltk
+# nltk.download('stopwords')
+
 
 class SearchEngine:
     def __init__(self, source_path) -> None:
@@ -45,7 +51,8 @@ class SearchEngine:
         self.__addQuery(query)
 
         tfidfMatrix = self.__mapToMatrix()
-        tfidfMatrix.to_csv('tfidfMatrix.csv')
+        # tfidfMatrix.to_csv('tfidfMatrix.csv')
+        # print(tfidfMatrix.index)
 
         doc_tfidfMatrix = tfidfMatrix.loc[:, tfidfMatrix.columns != 'query'].to_numpy().round(decimals=4)
         query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
@@ -59,8 +66,12 @@ class SearchEngine:
 
         scoremap = dict(sorted(scoremap.items(), key=lambda item:item[1]))
 
+
+
         for doc in list(scoremap.items())[:5]:
             print(doc)
+
+        # print(scoremap)
 
     
 
@@ -103,26 +114,21 @@ class SearchEngine:
 
         return filelist
     
-
-
+    
     def __docPreProcessing(self, filepath):
         stopwords_dict = Counter(stopwords.words('english'))
+        ps = PorterStemmer()
 
-        file = open(filepath, 'r', errors='replace')
-        lines = file.readlines()
-        
-        stopwords_dict = Counter(stopwords.words('english'))
-    
-        doctext = ""
-        for line in lines:
-            line = line.translate(str.maketrans('', '', string.punctuation)).strip().lower()
-            line = ' '.join([word for word in line.split() if word not in stopwords_dict])
-            doctext += line
 
-        file.close()
-            
-        doctextList = doctext.split()
-        return doctextList
+        docTextList = []
+        with open(filepath, 'r', errors='replace') as file:
+            for line in file:
+                for word in line.split():
+                    word = word.translate(str.maketrans('', '', string.punctuation)).strip().lower()
+                    if word not in stopwords_dict and word != '':
+                        docTextList.append(ps.stem(word))
+
+        return docTextList
 
 
 
