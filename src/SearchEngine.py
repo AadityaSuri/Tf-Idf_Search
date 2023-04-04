@@ -221,7 +221,10 @@ class SearchEngine:
     
     
 
-    
+    # calculate the cosine similarity score between the query and each document
+    # cos(theta) = (qT * D) / (||q|| * ||D||)
+    # theta = arccos(cos(theta))
+    # minimize theta to find the most similar document
     def __cosineSimilarityScore(self, q, D) -> 'np.array':
         q_mag = np.sqrt(q.dot(q))
         
