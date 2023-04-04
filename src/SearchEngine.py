@@ -19,7 +19,7 @@ import sqlite3
 
 
 class SearchEngine:
-    def __init__(self, source_path) -> None:
+    def __init__(self, source_path: 'str') -> None:
         self.source_path = source_path
         self.database = source_path + "/searchUtils"
 
@@ -47,7 +47,7 @@ class SearchEngine:
 
 
 
-    def search(self, query):
+    def search(self, query: 'str') -> None:
         self.__addQuery(query)
 
         tfidfMatrix = self.__mapToMatrix()
@@ -75,7 +75,7 @@ class SearchEngine:
 
     
 
-    def __addQuery(self, query):
+    def __addQuery(self, query : 'str') -> None:
         queryfile = open('query.txt', 'w')
         queryfile.write(query)
         queryfile.close()
@@ -100,7 +100,7 @@ class SearchEngine:
 
 
 
-    def __fileCollector(self):
+    def __fileCollector(self) -> 'list':
         filelist = []
         for root, dirs, files in os.walk(self.source_path):
             for file in files:
@@ -115,7 +115,7 @@ class SearchEngine:
         return filelist
     
     
-    def __docPreProcessing(self, filepath):
+    def __docPreProcessing(self, filepath: 'str') -> 'list':
         stopwords_dict = Counter(stopwords.words('english'))
         ps = PorterStemmer()
 
@@ -132,7 +132,7 @@ class SearchEngine:
 
 
 
-    def __tf(self, wordlist):
+    def __tf(self, wordlist : 'list') -> 'dict':
         wordmap = {}
         
         for word in wordlist:
@@ -145,7 +145,7 @@ class SearchEngine:
     
 
     
-    def __tfidfMapBuilder(self):
+    def __tfidfMapBuilder(self) -> None:
         termset = set()
 
         for doc in self.__doclist:
@@ -170,7 +170,7 @@ class SearchEngine:
 
 
 
-    def __mapToMatrix(self):
+    def __mapToMatrix(self) -> 'pd.DataFrame':
         matrix = copy.copy(self.__tfidfMap)
 
         N = len(self.__doclist)
@@ -191,7 +191,7 @@ class SearchEngine:
     
 
     
-    def __cosineSimilarityScore(self, q, D):
+    def __cosineSimilarityScore(self, q, D) -> 'np.array':
         q_mag = np.sqrt(q.dot(q))
         
         qT = np.reshape(q, (1, q.shape[0]))
