@@ -1,6 +1,6 @@
 from SearchEngine import SearchEngine
 
-engine = SearchEngine(r'../testset/sci.space')
+engine = SearchEngine(r'../testset/sci.space', max_docs=200)
 
 # database = r'../testset/sci.space/tfidfmap.db'
 # conn = sqlite3.connect(database)

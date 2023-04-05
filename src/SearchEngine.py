@@ -12,6 +12,7 @@ import copy
 import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
+from itertools import repeat
 
 # uncomment the following line if you are runnning this script for the first time or if you don't have the stopwords package
 
@@ -19,14 +20,17 @@ from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 # nltk.download('stopwords')
 
 
+# def multihelper(N, x):
+#     x = math.log((N + 1)/(x + 1)) + 1
 
 # SearchEngine main class
 class SearchEngine:
 
     # constructor
-    def __init__(self, source_path: 'str') -> None:
+    def __init__(self, source_path: 'str', max_docs: 'int' = 1000) -> None:
         self.source_path = source_path  # path to the source directory at which all documents are to be searched
         self.database = source_path + "/searchUtils"
+        self.max_docs = max_docs
 
 
         # create tfidfMatrix for all terms present in the source directory if it doesn't exist
@@ -99,9 +103,8 @@ class SearchEngine:
     def __addQuery(self, query : 'str') -> None:
 
         # write query to a file (inefficient, but works. need to change this)
-        queryfile = open('query.txt', 'w')
-        queryfile.write(query)
-        queryfile.close()
+        with open('query.txt', 'w') as queryfile:
+            queryfile.write(query)
 
         # perform document preprocessing on the query
         tf_res = self.__tf(self.__docPreProcessing('query.txt'))
@@ -121,7 +124,9 @@ class SearchEngine:
                 for column in self.__tfidfMap.columns:
                     if column != 'query':
                         new_row[column] = 0
-                self.__tfidfMap = pd.concat([self.__tfidfMap, new_row])
+                self.__tfidfMap = pd.concat([self.__tfidfMap, new_row], axis=0)
+
+
 
 
 
@@ -135,7 +140,7 @@ class SearchEngine:
                 else:
                     filelist.append(os.path.join(root, file))
 
-                if len(filelist) == 50:  # cap the number of documents to 50 for now, need to change this
+                if len(filelist) == self.max_docs:  # cap the number of documents to 50 for now, need to change this
                     return filelist
 
         return filelist
@@ -208,33 +213,35 @@ class SearchEngine:
                 self.__tfidfMap.at[term, 'df'] += 1
 
 
+    
+    def __multihelper(self, N, x):
+        x = math.log((N + 1)/(x + 1)) + 1
 
-    # def multihelper(N, )
 
     # map the tfidfMap to a matrix, remove the df column and normalize the matrix
     def __mapToMatrix(self) -> 'pd.DataFrame':
         matrix = copy.copy(self.__tfidfMap)
 
         N = len(self.__doclist)
+        
+        # matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
+        df_norm = np.vectorize(lambda x: math.log((N + 1)/(x + 1)) + 1)
+        matrix['df'] = df_norm(matrix['df'])
 
-        # print(type(matrix['df']))
-        # df = number of documents that contain the term t (document frequency) 
-        with PoolExecutor() as executor:
-            executor.map(lambda x: math.log((N + 1)/(x + 1)) + 1, matrix['df'])
-        # matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1))s + 1)  # parallelize the apply function
 
         # with PoolExecutor() as executor:
         #     for col in matrix.columns:
         #         if col != 'df':
         #             executor.map(lambda x: x/self.__docNmap[col], matrix[col])
+
+
         for col in matrix.columns:
             if col != 'df':
-                matrix[col] = matrix[col].apply(lambda x: x/self.__docNmap[col])  # parallelize the apply function
+                matrix[col].apply(lambda x: x/self.__docNmap[col])  # parallelize the apply function
 
         # parallelize this for loop
         for index, row in matrix.iterrows():
-            term_df = row['df']
-            row = row.apply(lambda x: x * term_df) # parallelize the apply function
+            row = row.apply(lambda x: x * row['df']) # parallelize the apply function
 
         
         matrix = matrix.drop(columns=['df'], axis=1) # remove the df column
