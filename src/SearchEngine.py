@@ -19,11 +19,10 @@ from nltk.stem import PorterStemmer
 # nltk.download('stopwords')
 
 
-
 # SearchEngine main class
 class SearchEngine:
     # constructor
-    def __init__(self, source_path: 'str', max_docs: 'int' = 1000) -> None:
+    def __init__(self, source_path: "str", max_docs: "int" = 1000) -> None:
         self.source_path = source_path  # path to the source directory at which all documents are to be searched
         self.database = source_path + "/searchUtils"
         self.max_docs = max_docs
@@ -68,7 +67,6 @@ class SearchEngine:
     def search(self, query: "str") -> None:
         self.__addQuery(query)  # add query to the tfidfMap
 
-        
         starttime = time.process_time()
 
         # convert tfidfMap to tfidfMatrix with the query added
@@ -79,7 +77,6 @@ class SearchEngine:
         stoptime = time.process_time()
 
         print(stoptime - starttime)
-
 
         # extract the document and query vectors from the matrix
         doc_tfidfMatrix = (
@@ -104,7 +101,7 @@ class SearchEngine:
     # add query to the tfidfMap
     def __addQuery(self, query: "str") -> None:
         # write query to a file (inefficient, but works. need to change this)
-        with open('query.txt', 'w') as queryfile:
+        with open("query.txt", "w") as queryfile:
             queryfile.write(query)
 
         # perform document preprocessing on the query
@@ -129,8 +126,6 @@ class SearchEngine:
                         new_row[column] = 0
                 self.__tfidfMap = pd.concat([self.__tfidfMap, new_row], axis=0)
 
-
-
     # recusively collect all files in the source directory
     def __fileCollector(self) -> "list":
         filelist = []
@@ -143,7 +138,9 @@ class SearchEngine:
                 else:
                     filelist.append(os.path.join(root, file))
 
-                if len(filelist) == self.max_docs:  # cap the number of documents to 50 for now, need to change this
+                if (
+                    len(filelist) == self.max_docs
+                ):  # cap the number of documents to 50 for now, need to change this
                     return filelist
 
         return filelist
@@ -204,7 +201,6 @@ class SearchEngine:
 
         self.__tfidfMap = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
-
         # can parallelize this for loop. at tf for all parallely but block at df
         for doc in self.__doclist:
             wordmap = self.__tf(self.__docPreProcessing(doc))
@@ -217,10 +213,10 @@ class SearchEngine:
         matrix = copy.copy(self.__tfidfMap)
 
         N = len(self.__doclist)
-        
+
         # matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
-        df_norm = np.vectorize(lambda x: math.log((N + 1)/(x + 1)) + 1)
-        matrix['df'] = df_norm(matrix['df'])
+        df_norm = np.vectorize(lambda x: math.log((N + 1) / (x + 1)) + 1)
+        matrix["df"] = df_norm(matrix["df"])
 
         for col in matrix.columns:
             if col != "df":
@@ -228,10 +224,9 @@ class SearchEngine:
 
         # parallelize this for loop
         for index, row in matrix.iterrows():
-            row = row.apply(lambda x: x * row['df']) # parallelize the apply function
+            row = row.apply(lambda x: x * row["df"])  # parallelize the apply function
 
-        
-        matrix = matrix.drop(columns=['df'], axis=1) # remove the df column
+        matrix = matrix.drop(columns=["df"], axis=1)  # remove the df column
 
         return matrix
 
