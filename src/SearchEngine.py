@@ -1,4 +1,5 @@
 import copy
+import time
 import json
 import math
 import os
@@ -18,13 +19,14 @@ from nltk.stem import PorterStemmer
 # nltk.download('stopwords')
 
 
+
 # SearchEngine main class
 class SearchEngine:
     # constructor
-    def __init__(self, source_path: "str") -> None:
-        self.source_path = source_path  # path to the source directory at which
-        # all documents are to be searched
+    def __init__(self, source_path: 'str', max_docs: 'int' = 1000) -> None:
+        self.source_path = source_path  # path to the source directory at which all documents are to be searched
         self.database = source_path + "/searchUtils"
+        self.max_docs = max_docs
 
         # create tfidfMatrix for all terms present
         # in the source directory if it doesn't exist
@@ -66,10 +68,18 @@ class SearchEngine:
     def search(self, query: "str") -> None:
         self.__addQuery(query)  # add query to the tfidfMap
 
+        
+        starttime = time.process_time()
+
         # convert tfidfMap to tfidfMatrix with the query added
         tfidfMatrix = self.__mapToMatrix()
         # tfidfMatrix.to_csv('tfidfMatrix.csv')
         # print(tfidfMatrix.index)
+
+        stoptime = time.process_time()
+
+        print(stoptime - starttime)
+
 
         # extract the document and query vectors from the matrix
         doc_tfidfMatrix = (
@@ -94,9 +104,8 @@ class SearchEngine:
     # add query to the tfidfMap
     def __addQuery(self, query: "str") -> None:
         # write query to a file (inefficient, but works. need to change this)
-        queryfile = open("query.txt", "w")
-        queryfile.write(query)
-        queryfile.close()
+        with open('query.txt', 'w') as queryfile:
+            queryfile.write(query)
 
         # perform document preprocessing on the query
         tf_res = self.__tf(self.__docPreProcessing("query.txt"))
@@ -118,7 +127,9 @@ class SearchEngine:
                 for column in self.__tfidfMap.columns:
                     if column != "query":
                         new_row[column] = 0
-                self.__tfidfMap = pd.concat([self.__tfidfMap, new_row])
+                self.__tfidfMap = pd.concat([self.__tfidfMap, new_row], axis=0)
+
+
 
     # recusively collect all files in the source directory
     def __fileCollector(self) -> "list":
@@ -132,9 +143,7 @@ class SearchEngine:
                 else:
                     filelist.append(os.path.join(root, file))
 
-                if (
-                    len(filelist) == 50
-                ):  # cap the number of documents to 50 for now, need to change this
+                if len(filelist) == self.max_docs:  # cap the number of documents to 50 for now, need to change this
                     return filelist
 
         return filelist
@@ -195,6 +204,8 @@ class SearchEngine:
 
         self.__tfidfMap = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
+
+        # can parallelize this for loop. at tf for all parallely but block at df
         for doc in self.__doclist:
             wordmap = self.__tf(self.__docPreProcessing(doc))
             for term in wordmap:
@@ -206,18 +217,21 @@ class SearchEngine:
         matrix = copy.copy(self.__tfidfMap)
 
         N = len(self.__doclist)
-        # df = number of documents that contain the term t (document frequency)
-        matrix["df"] = matrix["df"].apply(lambda x: math.log((N + 1) / (x + 1)) + 1)
+        
+        # matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
+        df_norm = np.vectorize(lambda x: math.log((N + 1)/(x + 1)) + 1)
+        matrix['df'] = df_norm(matrix['df'])
 
         for col in matrix.columns:
             if col != "df":
                 matrix[col] = matrix[col].apply(lambda x: x / self.__docNmap[col])
 
+        # parallelize this for loop
         for index, row in matrix.iterrows():
-            term_df = row["df"]
-            row = row.apply(lambda x: x * term_df)
+            row = row.apply(lambda x: x * row['df']) # parallelize the apply function
 
-        matrix = matrix.drop(columns=["df"], axis=1)  # remove the df column
+        
+        matrix = matrix.drop(columns=['df'], axis=1) # remove the df column
 
         return matrix
 
