@@ -1,6 +1,6 @@
 from SearchEngine import SearchEngine
 
-engine = SearchEngine(r'../testset/sci.space')
+engine = SearchEngine(r"../testset/sci.space")
 
 # database = r'../testset/sci.space/tfidfmap.db'
 # conn = sqlite3.connect(database)
@@ -8,5 +8,4 @@ engine = SearchEngine(r'../testset/sci.space')
 # conn.close()
 
 # engine.printmap()
-engine.search('Moon Landing is a hoax')
-
+engine.search("Moon Landing is a hoax")
