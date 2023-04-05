@@ -190,6 +190,8 @@ class SearchEngine:
        
         self.__tfidfMap = pd.DataFrame(0, index=list(termset), columns=df_columns)
 
+
+        # can parallelize this for loop. at tf for all parallely but block at df
         for doc in self.__doclist:
             wordmap = self.__tf(self.__docPreProcessing(doc))
             for term in wordmap:
@@ -205,15 +207,16 @@ class SearchEngine:
 
         N = len(self.__doclist)
         # df = number of documents that contain the term t (document frequency) 
-        matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)
+        matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
 
         for col in matrix.columns:
             if col != 'df':
-                matrix[col] = matrix[col].apply(lambda x: x/self.__docNmap[col])
+                matrix[col] = matrix[col].apply(lambda x: x/self.__docNmap[col])  # parallelize the apply function
 
+        # parallelize this for loop
         for index, row in matrix.iterrows():
             term_df = row['df']
-            row = row.apply(lambda x: x * term_df)
+            row = row.apply(lambda x: x * term_df) # parallelize the apply function
         
         matrix = matrix.drop(columns=['df'], axis=1) # remove the df column
 
