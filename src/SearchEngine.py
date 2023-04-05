@@ -10,6 +10,8 @@ import os
 import json
 import copy
 import sqlite3
+import time
+from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 
 # uncomment the following line if you are runnning this script for the first time or if you don't have the stopwords package
 
@@ -63,9 +65,16 @@ class SearchEngine:
     def search(self, query: 'str') -> None:
         self.__addQuery(query)  # add query to the tfidfMap
 
+        
+        starttime = time.process_time()
+
         tfidfMatrix = self.__mapToMatrix()  # convert tfidfMap to tfidfMatrix with the query added
         # tfidfMatrix.to_csv('tfidfMatrix.csv')
         # print(tfidfMatrix.index)
+
+        stoptime = time.process_time()
+
+        print(stoptime - starttime)
 
 
         # extract the document and query vectors from the matrix
@@ -200,15 +209,24 @@ class SearchEngine:
 
 
 
+    # def multihelper(N, )
 
     # map the tfidfMap to a matrix, remove the df column and normalize the matrix
     def __mapToMatrix(self) -> 'pd.DataFrame':
         matrix = copy.copy(self.__tfidfMap)
 
         N = len(self.__doclist)
-        # df = number of documents that contain the term t (document frequency) 
-        matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
 
+        # print(type(matrix['df']))
+        # df = number of documents that contain the term t (document frequency) 
+        with PoolExecutor() as executor:
+            executor.map(lambda x: math.log((N + 1)/(x + 1)) + 1, matrix['df'])
+        # matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1))s + 1)  # parallelize the apply function
+
+        # with PoolExecutor() as executor:
+        #     for col in matrix.columns:
+        #         if col != 'df':
+        #             executor.map(lambda x: x/self.__docNmap[col], matrix[col])
         for col in matrix.columns:
             if col != 'df':
                 matrix[col] = matrix[col].apply(lambda x: x/self.__docNmap[col])  # parallelize the apply function
@@ -217,6 +235,7 @@ class SearchEngine:
         for index, row in matrix.iterrows():
             term_df = row['df']
             row = row.apply(lambda x: x * term_df) # parallelize the apply function
+
         
         matrix = matrix.drop(columns=['df'], axis=1) # remove the df column
 
