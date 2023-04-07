@@ -225,30 +225,39 @@ class SearchEngine:
 
         N = len(self.__doclist)
 
-        # matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
-
         dfnormTime = time.process_time()
-        df_norm = np.vectorize(lambda x: math.log((N + 1) / (x + 1)) + 1)
-        matrix["df"] = df_norm(matrix["df"])
+
+        matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
+
+        # df_norm = np.vectorize(lambda x: math.log((N + 1) / (x + 1)) + 1)
+        # matrix["df"] = df_norm(matrix["df"])
         print("dfnormTime: ", time.process_time() - dfnormTime)
 
 
         tfcalcTime = time.process_time()
-        for col in matrix.columns:
-            if col != "df":
-                matrix[col] = matrix[col].apply(lambda x: x / self.__docNmap[col])
+        # for col in matrix.columns:
+        #     if col != "df":
+        #         matrix[col] = matrix[col].apply(lambda x: x / self.__docNmap[col])
+
+        docNmap_series = pd.Series(self.__docNmap)
+        cols_to_divide = matrix.columns[matrix.columns != "df"]
+        matrix[cols_to_divide] = matrix[cols_to_divide].div(docNmap_series[cols_to_divide], axis=1)
 
         print("tfcalcTime: ", time.process_time() - tfcalcTime)
 
 
         tfidfcalcTime = time.process_time()
         # parallelize this for loop
-        for index, row in matrix.iterrows():
-            row = row.apply(lambda x: x * row["df"])  # parallelize the apply function
+        # for index, row in matrix.iterrows():
+        #     row = row.apply(lambda x: x * row["df"])  # parallelize the apply function
+        
+        df_col = matrix["df"]
+        matrix = matrix.drop(columns=["df"]).mul(df_col, axis=0)
+
 
         print("tfidfcalcTime: ", time.process_time() - tfidfcalcTime)
 
-        matrix = matrix.drop(columns=["df"], axis=1)  # remove the df column
+        # matrix = matrix.drop(columns=["df"], axis=1)  # remove the df column
 
         return matrix
 
