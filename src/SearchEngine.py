@@ -6,7 +6,6 @@ import os
 import sqlite3
 import string
 from collections import Counter
-import time
 
 import numpy as np
 import pandas as pd
@@ -41,11 +40,7 @@ class SearchEngine:
             self.__docNmap = (
                 {}
             )  # map of document name to number of terms in the document  # noqa: E501
-
-
-            starttime = time.process_time()
             self.__tfidfMapBuilder()
-            print("Time taken to build tfidfMap: ", time.process_time() - starttime)
 
             # save tfidfmap for searching queries
             conn = sqlite3.connect(self.database + "/tfidfmap.db")
@@ -70,20 +65,18 @@ class SearchEngine:
 
     # print top 5 most relevant documents for the given query
     def search(self, query: "str") -> None:
-        addQueryStartTime = time.process_time()
-
         self.__addQuery(query)  # add query to the tfidfMap
 
-        print("Time taken to add query to tfidfMap: ", time.process_time() - addQueryStartTime)
-
-        convertStartTime = time.process_time()
+        starttime = time.process_time()
 
         # convert tfidfMap to tfidfMatrix with the query added
         tfidfMatrix = self.__mapToMatrix()
         # tfidfMatrix.to_csv('tfidfMatrix.csv')
         # print(tfidfMatrix.index)
 
-        print("Time taken to convert tfidfMap to tfidfMatrix: ", time.process_time() - convertStartTime)
+        stoptime = time.process_time()
+
+        print(stoptime - starttime)
 
         # extract the document and query vectors from the matrix
         doc_tfidfMatrix = (
@@ -93,11 +86,7 @@ class SearchEngine:
         )
         query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
 
-        cosineStartTime = time.process_time()
-
         scorelist = self.__cosineSimilarityScore(query_vector, doc_tfidfMatrix)
-
-        print("Time taken to calculate cosine similarity score: ", time.process_time() - cosineStartTime)
 
         scoremap = {}
 
@@ -226,27 +215,16 @@ class SearchEngine:
         N = len(self.__doclist)
 
         # matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
-
-        dfnormTime = time.process_time()
         df_norm = np.vectorize(lambda x: math.log((N + 1) / (x + 1)) + 1)
         matrix["df"] = df_norm(matrix["df"])
-        print("dfnormTime: ", time.process_time() - dfnormTime)
 
-
-        tfcalcTime = time.process_time()
         for col in matrix.columns:
             if col != "df":
                 matrix[col] = matrix[col].apply(lambda x: x / self.__docNmap[col])
 
-        print("tfcalcTime: ", time.process_time() - tfcalcTime)
-
-
-        tfidfcalcTime = time.process_time()
         # parallelize this for loop
         for index, row in matrix.iterrows():
             row = row.apply(lambda x: x * row["df"])  # parallelize the apply function
-
-        print("tfidfcalcTime: ", time.process_time() - tfidfcalcTime)
 
         matrix = matrix.drop(columns=["df"], axis=1)  # remove the df column
 

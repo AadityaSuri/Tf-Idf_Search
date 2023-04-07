@@ -1,7 +1,6 @@
 from SearchEngine import SearchEngine
-import time
 
-engine = SearchEngine(r"../testset/sci.space", max_docs=100)
+engine = SearchEngine(r"../testset/sci.space", max_docs=50)
 
 # database = r'../testset/sci.space/tfidfmap.db'
 # conn = sqlite3.connect(database)
@@ -9,7 +8,4 @@ engine = SearchEngine(r"../testset/sci.space", max_docs=100)
 # conn.close()
 
 # engine.printmap()
-
-seachStartTime = time.process_time()
 engine.search("EM radiation in the solar system")
-print("Time taken to search: ", time.process_time() - seachStartTime)
