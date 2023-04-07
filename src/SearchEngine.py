@@ -224,9 +224,13 @@ class SearchEngine:
 
 
         # sort of bottleneck here, need to optimize this
-        docNmap_series = pd.Series(self.__docNmap)
-        cols_to_divide = matrix.columns[matrix.columns != "df"]
-        matrix[cols_to_divide] = matrix[cols_to_divide].div(docNmap_series[cols_to_divide], axis=1)
+        # docNmap_series = pd.Series(self.__docNmap)
+        # cols_to_divide = matrix.columns[matrix.columns != "df"]
+        # matrix[cols_to_divide] = matrix[cols_to_divide].div(docNmap_series[cols_to_divide], axis=1)
+
+        cols = [col for col in matrix.columns if col != "df"]
+        docNmap = np.array([self.__docNmap[col] for col in cols])
+        matrix[cols] = matrix[cols].div(docNmap, axis=1)
 
         print("tfcalcTime: ", time.process_time() - tfcalcTime)
 
