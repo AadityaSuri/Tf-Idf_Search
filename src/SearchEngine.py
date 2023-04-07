@@ -179,11 +179,13 @@ class SearchEngine:
     # Build the tfidfMap from the doclist
     def __tfidfMapBuilder(self) -> None:
         termset = set()
+        docTextListMap = {}
 
         for doc in self.__doclist:
-            tf_res = self.__tf(self.__docPreProcessing(doc))
-            self.__docNmap[doc] = sum(tf_res.values())
-            termset.update(set(tf_res.keys()))
+            docTextList = self.__docPreProcessing(doc)
+            self.__docNmap[doc] = len(docTextList)
+            termset.update(set(docTextList))
+            docTextListMap[doc] = docTextList
 
         # save docNmap to json file
         with open(self.database + "/docNmap.json", "w") as f:
@@ -196,7 +198,7 @@ class SearchEngine:
 
         # can parallelize this for loop. at tf for all parallely but block at df
         for doc in self.__doclist:
-            wordmap = self.__tf(self.__docPreProcessing(doc))
+            wordmap = self.__tf(docTextListMap[doc])
             for term in wordmap:
                 self.__tfidfMap.at[term, doc] = wordmap[term]
                 self.__tfidfMap.at[term, "df"] += 1
