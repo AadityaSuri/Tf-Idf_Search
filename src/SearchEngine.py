@@ -126,9 +126,8 @@ class SearchEngine:
         filelist = []
         for root, dirs, files in os.walk(self.source_path):
             for file in files:
-                if file.endswith(".json") or file.endswith(
-                    ".db"
-                ):  # ignore json and db files since they are for internal use, need to change this
+                # ignore json and db files since they are for internal use, need to change this
+                if file.endswith(".json") or file.endswith(".db"):  
                     continue
                 else:
                     filelist.append(os.path.join(root, file))
