@@ -35,12 +35,8 @@ class SearchEngine:
             os.mkdir(self.database)
 
             # create tfidfmap.db
-            self.__doclist = (
-                self.__fileCollector()
-            )  # recursively list all documents in the source directory  # noqa: E501
-            self.__docNmap = (
-                {}
-            )  # map of document name to number of terms in the document  # noqa: E501
+            self.__doclist = self.__fileCollector()  # recursively list all documents in the source directory  # noqa: E501
+            self.__docNmap = {}  # map of document name to number of terms in the document  # noqa: E501
 
 
             self.__tfidfMapBuilder()
@@ -137,9 +133,7 @@ class SearchEngine:
                 else:
                     filelist.append(os.path.join(root, file))
 
-                if (
-                    len(filelist) == self.max_docs
-                ):  # cap the number of documents to 50 for now, need to change this
+                if (len(filelist) == self.max_docs):  # cap the number of documents to 50 for now, need to change this
                     return filelist
 
         return filelist
@@ -214,19 +208,14 @@ class SearchEngine:
 
         N = len(self.__doclist)
 
-        matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1)  # parallelize the apply function
+        matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1) 
 
 
         tfcalcTime = time.process_time()
-        # for col in matrix.columns:
-        #     if col != "df":
-        #         matrix[col] = matrix[col].apply(lambda x: x / self.__docNmap[col])
 
-
-        # sort of bottleneck here, need to optimize this
-        docNmap_series = pd.Series(self.__docNmap)
-        cols_to_divide = matrix.columns[matrix.columns != "df"]
-        matrix[cols_to_divide] = matrix[cols_to_divide].div(docNmap_series[cols_to_divide], axis=1)
+        cols = [col for col in matrix.columns if col != "df"]
+        docNmap = np.array([self.__docNmap[col] for col in cols])
+        matrix[cols] = matrix[cols].div(docNmap, axis=1)
 
         print("tfcalcTime: ", time.process_time() - tfcalcTime)
 
@@ -250,9 +239,7 @@ class SearchEngine:
         divisors = q_mag * D_mags
         cos_thetas = np.divide(qTD, divisors)
 
-        cos_thetas = np.clip(
-            cos_thetas, -1, 1
-        )  # clip values to [-1, 1] to avoid nan values
+        cos_thetas = np.clip(cos_thetas, -1, 1)  # clip values to [-1, 1] to avoid nan values
 
         scores = np.arccos(cos_thetas)
 
