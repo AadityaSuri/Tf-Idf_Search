@@ -10,7 +10,6 @@
 
 
 std::unordered_map<std::string, double> tf(std::string filepath) {
-    
 
         std::unordered_map<std::string, int> stop_word_counter;
         for (std::string word : stop_words) {
@@ -46,6 +45,8 @@ std::unordered_map<std::string, double> tf(std::string filepath) {
 }
 
 int main() {
+
+    std::unordered_map<std::string, double> wmp = tf("../testset/sci.space/60151");
 
     using namespace std::chrono;
 
@@ -83,10 +84,10 @@ int main() {
 
     return 0;
 
-//     std::unordered_map<std::string, double> wordmap = tf("../testset/sci.space/60151");
+    // std::unordered_map<std::string, double> wordmap = tf("../testset/sci.space/60151");
 
-//     for (auto word : wordmap) {
-//         std::cout << word.first << " " << word.second << std::endl;
-//     }
+    // for (auto word : wordmap) {
+    //     std::cout << word.first << " " << word.second << std::endl;
+    // }
 }
 
