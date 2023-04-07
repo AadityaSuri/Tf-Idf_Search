@@ -6,7 +6,6 @@ import os
 import sqlite3
 import string
 from collections import Counter
-import time
 
 import numpy as np
 import pandas as pd
@@ -63,7 +62,7 @@ class SearchEngine:
             self.__doclist = list(self.__docNmap.keys())
 
     # print top 5 most relevant documents for the given query
-    def search(self, query: "str") -> None:
+    def search(self, query: "str", top_n: "int" = 5) -> None:
         self.__addQuery(query)  # add query to the tfidfMap
 
 
@@ -90,7 +89,7 @@ class SearchEngine:
 
         scoremap = dict(sorted(scoremap.items(), key=lambda item: item[1]))
 
-        for doc in list(scoremap.items())[:5]:
+        for doc in list(scoremap.items())[:top_n]:
             print(doc)
 
     # add query to the tfidfMap
