@@ -3,7 +3,7 @@ import time
 # import cppbindings
 
 constructorStartTime = time.process_time()
-engine = SearchEngine(r"../testset/sci.space", max_docs=100)
+engine = SearchEngine(r"../testset/sci.space", max_docs=200)
 print("Time taken to construct: ", time.process_time() - constructorStartTime)
 
 # database = r'../testset/sci.space/tfidfmap.db'
