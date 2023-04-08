@@ -6,7 +6,6 @@ import os
 import sqlite3
 import string
 from collections import Counter
-import time
 
 import numpy as np
 import pandas as pd
@@ -63,7 +62,7 @@ class SearchEngine:
             self.__doclist = list(self.__docNmap.keys())
 
     # print top 5 most relevant documents for the given query
-    def search(self, query: "str") -> None:
+    def search(self, query: "str", top_n: "int" = 5) -> None:
         self.__addQuery(query)  # add query to the tfidfMap
 
 
@@ -90,7 +89,7 @@ class SearchEngine:
 
         scoremap = dict(sorted(scoremap.items(), key=lambda item: item[1]))
 
-        for doc in list(scoremap.items())[:5]:
+        for doc in list(scoremap.items())[:top_n]:
             print(doc)
 
     # add query to the tfidfMap
@@ -126,9 +125,8 @@ class SearchEngine:
         filelist = []
         for root, dirs, files in os.walk(self.source_path):
             for file in files:
-                if file.endswith(".json") or file.endswith(
-                    ".db"
-                ):  # ignore json and db files since they are for internal use, need to change this
+                # ignore json and db files since they are for internal use, need to change this
+                if file.endswith(".json") or file.endswith(".db"):  
                     continue
                 else:
                     filelist.append(os.path.join(root, file))
@@ -179,11 +177,13 @@ class SearchEngine:
     # Build the tfidfMap from the doclist
     def __tfidfMapBuilder(self) -> None:
         termset = set()
+        docTextListMap = {}
 
         for doc in self.__doclist:
-            tf_res = self.__tf(self.__docPreProcessing(doc))
-            self.__docNmap[doc] = sum(tf_res.values())
-            termset.update(set(tf_res.keys()))
+            docTextList = self.__docPreProcessing(doc)
+            self.__docNmap[doc] = len(docTextList)
+            termset.update(set(docTextList))
+            docTextListMap[doc] = docTextList
 
         # save docNmap to json file
         with open(self.database + "/docNmap.json", "w") as f:
@@ -196,7 +196,7 @@ class SearchEngine:
 
         # can parallelize this for loop. at tf for all parallely but block at df
         for doc in self.__doclist:
-            wordmap = self.__tf(self.__docPreProcessing(doc))
+            wordmap = self.__tf(docTextListMap[doc])
             for term in wordmap:
                 self.__tfidfMap.at[term, doc] = wordmap[term]
                 self.__tfidfMap.at[term, "df"] += 1
