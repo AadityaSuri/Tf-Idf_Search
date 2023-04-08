@@ -1,4 +1,4 @@
-CXX = c++
+CXX = g++
 CXXFLAGS = -O3 -Wall -std=c++17 -fPIC
 LDLIBS = $(shell python3-config --ldflags)
 LDFLAGS = -shared
@@ -23,5 +23,8 @@ $(BINDING_OBJ): $(BINDING_SRC)
 $(DOC_PREPROCESSING_OBJ): $(DOC_PREPROCESSING_SRC)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-clean:
+clean-all:
 	rm -f $(cppbindings) $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ)
+
+clean:
+	rm -f $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ)

@@ -69,9 +69,6 @@ class SearchEngine:
 
         # convert tfidfMap to tfidfMatrix with the query added
         tfidfMatrix = self.__mapToMatrix()
-        # tfidfMatrix.to_csv('tfidfMatrix.csv')
-        # print(tfidfMatrix.index)
-
 
         # extract the document and query vectors from the matrix
         doc_tfidfMatrix = (
@@ -90,8 +87,11 @@ class SearchEngine:
 
         scoremap = dict(sorted(scoremap.items(), key=lambda item: item[1]))
 
-        for doc in list(scoremap.items())[:top_n]:
-            print(doc)
+        top_n_docs = list(scoremap.keys())[:top_n]
+        # for doc in list(scoremap.items())[:top_n]:
+        #     print(doc)
+
+        return top_n_docs
 
     # add query to the tfidfMap
     def __addQuery(self, query: "str") -> None:
@@ -201,13 +201,14 @@ class SearchEngine:
         matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1) 
 
 
-        tfcalcTime = time.process_time()
+        # tfcalcTime = time.process_time()
 
+        # quite slow, need to optimize this
         cols = [col for col in matrix.columns if col != "df"]
         docNmap = np.array([self.__docNmap[col] for col in cols])
         matrix[cols] = matrix[cols].div(docNmap, axis=1)
 
-        print("tfcalcTime: ", time.process_time() - tfcalcTime)
+        # print("tfcalcTime: ", time.process_time() - tfcalcTime)
 
         
         df_col = matrix["df"]
