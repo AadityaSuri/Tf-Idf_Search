@@ -8,3 +8,7 @@ My attempt at a TF-IDF search engine which makes use of the Pandas library to st
 
 tf-idf algorithm:
 https://en.wikipedia.org/wiki/Tf%E2%80%93idf
+
+future updates (in no particular order)
+* port the Porter Stemmer algorithm to c++ and multithread it
+* implement a frontend interface for the app
