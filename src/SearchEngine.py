@@ -144,7 +144,9 @@ class SearchEngine:
     # 4. perform stemming on the document (using nltk PorterStemmer)
     def __docPreProcessing(self, filepath: "str") -> "list":
         ps = PorterStemmer()
-        return list(map(ps.stem, cppbindings.docPreProcessing(filepath)))
+
+        # document pre processing using c++ bindings, refer to docPreProcessing.cpp
+        return list(map(ps.stem, cppbindings.docPreProcessing(filepath)))  
 
 
     # calculate the tf of each term in the document

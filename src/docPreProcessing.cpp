@@ -9,6 +9,8 @@
 
 
 std::vector<std::string> docPreProcessing(std::string filepath) {
+
+    // Create a map of stop words for o(1) lookup
     std::unordered_map<std::string, int> stop_word_counter;
     for (std::string word : stop_words) {
         stop_word_counter[word] = 0;
@@ -36,6 +38,8 @@ std::vector<std::string> docPreProcessing(std::string filepath) {
         // Remove punctuation and check if the sanitized word is a stop word
         sanitized.erase(std::remove_if(sanitized.begin(), sanitized.end(),
                                        [](char c) { return std::ispunct(c); }), sanitized.end());
+
+        // Add the word to the list if it is not a stop word
         if (stop_word_counter.find(sanitized) == stop_word_counter.end() && sanitized.length() > 0) {
             docTextList.push_back(sanitized);
         }
