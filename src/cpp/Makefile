@@ -10,3 +10,6 @@ tf.o: tf.cpp stopwords.h
 
 clean:
 	rm -f *.o output
+
+
+# c++ -O3 -Wall -shared -std=c++17 -fPIC $(python3 -m pybind11 --includes) .cpp -o example$(python3-config --extension-suffix)

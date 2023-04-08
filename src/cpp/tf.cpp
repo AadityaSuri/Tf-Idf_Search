@@ -6,30 +6,30 @@
 #include <fstream>
 #include <algorithm>
 #include <iomanip>
-#include "stopwords.h"
+#include "include/stopwords.h"
 
-std::vector<std::string> docPreProcessing(std::string filepath) {
+// std::vector<std::string> docPreProcessing(std::string filepath) {
 
-    std::fstream file;
-    file.open(filepath, std::ios::in);
-    std::string word;
+//     std::fstream file;
+//     file.open(filepath, std::ios::in);
+//     std::string word;
 
-    std::vector<std::string> words;
-    while (file >> word) {
-        std::transform(word.begin(), word.end(), word.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
+//     std::vector<std::string> words;
+//     while (file >> word) {
+//         std::transform(word.begin(), word.end(), word.begin(),
+//                        [](unsigned char c) { return std::tolower(c); });
 
-        std::string sanitized;
-        std::remove_copy_if(word.begin(), word.end(), std::back_inserter(sanitized), 
-                            [](char c) { return std::ispunct(c); });
+//         std::string sanitized;
+//         std::remove_copy_if(word.begin(), word.end(), std::back_inserter(sanitized), 
+//                             [](char c) { return std::ispunct(c); });
 
-        if (sanitized.length() > 0) {
-            words.push_back(sanitized);
-        }
-    }
+//         if (sanitized.length() > 0) {
+//             words.push_back(sanitized);
+//         }
+//     }
 
-    return words;
-}
+//     return words;
+// }
 
 
 std::unordered_map<std::string, double> tf(std::string filepath) {
@@ -54,7 +54,7 @@ std::unordered_map<std::string, double> tf(std::string filepath) {
                                 [](char c) { return std::ispunct(c); });
 
             if (stop_word_counter.find(sanitized) == stop_word_counter.end() && sanitized.length() > 0) {
-                wordmap[stem(sanitized)] += 1;
+                wordmap[sanitized] += 1;
                 numWords += 1;
             }
         }
