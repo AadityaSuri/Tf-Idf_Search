@@ -1,8 +1,9 @@
 from SearchEngine import SearchEngine
 import time
+import cppbindings
 
 constructorStartTime = time.process_time()
-engine = SearchEngine(r"../../testset/sci.space", max_docs=200)
+engine = SearchEngine(r"../testset/sci.space", max_docs=50)
 print("Time taken to construct: ", time.process_time() - constructorStartTime)
 
 # database = r'../testset/sci.space/tfidfmap.db'
@@ -15,3 +16,5 @@ print("Time taken to construct: ", time.process_time() - constructorStartTime)
 seachStartTime = time.process_time()
 engine.search("EM radiation in the solar system")
 print("Time taken to search: ", time.process_time() - seachStartTime)
+
+# print(cppbindings.docPreProcessing(r'../testset/sci.space/60151'))

@@ -144,7 +144,7 @@ class SearchEngine:
     # 4. perform stemming on the document (using nltk PorterStemmer)
     def __docPreProcessing(self, filepath: "str") -> "list":
         # stopwords_dict = Counter(stopwords.words("english"))
-        # ps = PorterStemmer()
+        ps = PorterStemmer()
 
         # docTextList = []
         # with open(filepath, "r", errors="replace") as file:
@@ -159,7 +159,7 @@ class SearchEngine:
         #                 docTextList.append(ps.stem(word))
 
         # return docTextList
-        return cppbindings.docPreProcessing(filepath)
+        return list(map(ps.stem, cppbindings.docPreProcessing(filepath)))
 
     # calculate the tf of each term in the document
     # tf = (number of times term t appears in a document) / (total number of (non unique) terms in the document)
