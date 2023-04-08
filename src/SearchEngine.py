@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+import cppbindings
 
 # uncomment the following line if you are runnning this script for the first time or if
 # you don't have the stopwords package
@@ -142,22 +143,23 @@ class SearchEngine:
     # 3. convert all words to lowercase
     # 4. perform stemming on the document (using nltk PorterStemmer)
     def __docPreProcessing(self, filepath: "str") -> "list":
-        stopwords_dict = Counter(stopwords.words("english"))
+        # stopwords_dict = Counter(stopwords.words("english"))
         ps = PorterStemmer()
 
-        docTextList = []
-        with open(filepath, "r", errors="replace") as file:
-            for line in file:
-                for word in line.split():
-                    word = (
-                        word.translate(str.maketrans("", "", string.punctuation))
-                        .strip()
-                        .lower()
-                    )
-                    if word not in stopwords_dict and word != "":
-                        docTextList.append(ps.stem(word))
+        # docTextList = []
+        # with open(filepath, "r", errors="replace") as file:
+        #     for line in file:
+        #         for word in line.split():
+        #             word = (
+        #                 word.translate(str.maketrans("", "", string.punctuation))
+        #                 .strip()
+        #                 .lower()
+        #             )
+        #             if word not in stopwords_dict and word != "":
+        #                 docTextList.append(ps.stem(word))
 
-        return docTextList
+        # return docTextList
+        return list(map(ps.stem, cppbindings.docPreProcessing(filepath)))
 
     # calculate the tf of each term in the document
     # tf = (number of times term t appears in a document) / (total number of (non unique) terms in the document)
