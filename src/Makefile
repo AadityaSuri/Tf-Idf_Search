@@ -7,8 +7,10 @@ INCLUDES = -Iinclude $(shell python3 -m pybind11 --includes)
 BINDING_SRC = bindings/binding.cpp
 BINDING_OBJ = $(patsubst %.cpp,%.o,$(BINDING_SRC))
 
-DOC_PREPROCESSING_SRC = docPreProcessing.cpp
+DOC_PREPROCESSING_SRC = docPreProcessing.cpp 
+TF_SRC = tf.cpp
 DOC_PREPROCESSING_OBJ = $(patsubst %.cpp,%.o,$(DOC_PREPROCESSING_SRC))
+TF_OBJ = $(patsubst %.cpp,%.o,$(TF_SRC))
 
 cppbindings = cppbindings$(shell python3-config --extension-suffix)
 
@@ -21,6 +23,9 @@ $(BINDING_OBJ): $(BINDING_SRC)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 $(DOC_PREPROCESSING_OBJ): $(DOC_PREPROCESSING_SRC)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+$(TF_OBJ): $(TF_SRC)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clean-all:
