@@ -154,15 +154,8 @@ class SearchEngine:
 
     # kinda slow, maybe optimize this using c++ bindings
     def __tf(self, wordlist: "list") -> "dict":
-        wordmap = {}
-
-        for word in wordlist:
-            if word in wordmap:
-                wordmap[word] += 1
-            else:
-                wordmap[word] = 1
-
-        return wordmap
+        
+        return cppbindings.tf(wordlist)
 
     # Build the tfidfMap from the doclist
     def __tfidfMapBuilder(self) -> None:

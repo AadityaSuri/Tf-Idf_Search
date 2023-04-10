@@ -7,10 +7,13 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(cppbindings, m) {
-    m.doc() = "C++ bindings for docPreProcessing() using PyBind11"; // optional module docstring
+    m.doc() = "C++ bindings using PyBind11"; // optional module docstring
 
     m.def("docPreProcessing", &docPreProcessing, 
         "A function that preprocesses a documment, sanitizes it and retursn a vector of words");
+
+    m.def("tf", &tf, 
+        "A function that returns the term frequency of a document");
 }
 
 
