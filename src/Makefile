@@ -16,7 +16,7 @@ cppbindings = cppbindings$(shell python3-config --extension-suffix)
 
 all: $(cppbindings)
 
-$(cppbindings): $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ)
+$(cppbindings): $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ) $(TF_OBJ)
 	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 $(BINDING_OBJ): $(BINDING_SRC)
@@ -29,7 +29,7 @@ $(TF_OBJ): $(TF_SRC)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clean-all:
-	rm -f $(cppbindings) $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ)
+	rm -f $(cppbindings) $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ) $(TF_OBJ)
 
 clean:
-	rm -f $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ)
+	rm -f $(BINDING_OBJ) $(DOC_PREPROCESSING_OBJ) $(TF_OBJ)
