@@ -185,6 +185,7 @@ class SearchEngine:
                 self.__tfidfMap.at[term, "df"] += 1
 
 
+    # do the pandas to numpy conversion here itself 
     # map the tfidfMap to a matrix, remove the df column and normalize the matrix
     def __mapToMatrix(self) -> "pd.DataFrame":
         matrix = copy.copy(self.__tfidfMap)
