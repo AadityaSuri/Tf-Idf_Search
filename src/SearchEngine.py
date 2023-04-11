@@ -192,7 +192,10 @@ class SearchEngine:
 
         N = len(self.__doclist)
 
-        matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1) 
+
+        print(matrix)
+        matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1) 
+        print(matrix)
 
 
         # tfcalcTime = time.process_time()
