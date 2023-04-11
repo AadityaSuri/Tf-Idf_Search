@@ -71,19 +71,15 @@ class SearchEngine:
         tfidfMatrix = self.__mapToMatrix()
 
         # extract the document and query vectors from the matrix
-        doc_tfidfMatrix = (
-            tfidfMatrix.loc[:, tfidfMatrix.columns != "query"]
-            .to_numpy()
-            .round(decimals=4)
-        )
-        query_vector = tfidfMatrix.loc[:, "query"].to_numpy().round(decimals=4)
+        doc_tfidfMatrix = tfidfMatrix[:, :-1]
+        query_vector = tfidfMatrix[:, -1]
 
         scorelist = self.__cosineSimilarityScore(query_vector, doc_tfidfMatrix)
 
         scoremap = {}
 
         for index, score in enumerate(scorelist):
-            scoremap[tfidfMatrix.columns[index]] = score
+            scoremap[self.__tfidfMap.columns[index + 1]] = score
 
         scoremap = dict(sorted(scoremap.items(), key=lambda item: item[1]))
 
@@ -187,30 +183,38 @@ class SearchEngine:
 
     # do the pandas to numpy conversion here itself 
     # map the tfidfMap to a matrix, remove the df column and normalize the matrix
-    def __mapToMatrix(self) -> "pd.DataFrame":
-        matrix = copy.copy(self.__tfidfMap)
+    def __mapToMatrix(self) -> "np.ndarray":
+        # matrix = copy.copy(self.__tfidfMap)
+        matrix = self.__tfidfMap.to_numpy().astype(np.float64)
 
         N = len(self.__doclist)
 
 
         print(matrix)
-        matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1) 
+        print(N)
+
+        # matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1) 
+        df_norm = np.vectorize(lambda x: math.log((N + 1.0)/(x + 1.0)) + 1.0)
+        matrix[:, 0] = df_norm(matrix[:, 0])
         print(matrix)
 
 
-        # tfcalcTime = time.process_time()
+        tfcalcTime = time.process_time()
 
         # quite slow, need to optimize this
-        cols = [col for col in matrix.columns if col != "df"]
-        docNmap = np.array([self.__docNmap[col] for col in cols])
-        matrix[cols] = matrix[cols].div(docNmap, axis=1)
+        # cols = [col for col in matrix.columns if col != "df"]
+        # docNmap = np.array([self.__docNmap[col] for col in cols])
+        # matrix[cols] = matrix[cols].div(docNmap, axis=1)
+        cols = matrix[:, 1:]
+        docNmap = np.array([self.__docNmap[col] for col in self.__doclist])
+        matrix[:, 1:] = cols / docNmap
 
-        # print("tfcalcTime: ", time.process_time() - tfcalcTime)
+        print("tfcalcTime: ", time.process_time() - tfcalcTime)
 
         
-        df_col = matrix["df"]
-        matrix = matrix.drop(columns=["df"]).mul(df_col, axis=0)
-
+        df_col = matrix[:, 0]
+        # matrix = matrix.drop(columns=["df"]).mul(df_col, axis=0)
+        matrix = matrix[:, 1:] * df_col.reshape((df_col.shape[0], 1))
         return matrix
 
     # calculate the cosine similarity score between the query and each document
