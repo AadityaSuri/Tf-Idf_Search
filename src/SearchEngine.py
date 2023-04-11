@@ -6,6 +6,7 @@ import os
 import sqlite3
 import string
 from collections import Counter
+import tqdm 
 
 import numpy as np
 import pandas as pd
@@ -39,7 +40,9 @@ class SearchEngine:
             self.__docNmap = {}  # map of document name to number of terms in the document  # noqa: E501
 
 
-            self.__tfidfMapBuilder()
+            with tqdm.tqdm(total=len(self.__doclist), desc="Building TF-IDF map") as pbar:
+                self.__tfidfMapBuilder(progress_callback=lambda: pbar.update())
+
 
             # save tfidfmap for searching queries
             conn = sqlite3.connect(self.database + "/tfidfmap.db")
@@ -154,7 +157,7 @@ class SearchEngine:
         return cppbindings.tf(wordlist)
 
     # Build the tfidfMap from the doclist
-    def __tfidfMapBuilder(self) -> None:
+    def __tfidfMapBuilder(self, progress_callback=None) -> None:
         termset = set()
         docTextListMap = {}
 
@@ -179,6 +182,9 @@ class SearchEngine:
             for term in wordmap:
                 self.__tfidfMap.at[term, doc] = wordmap[term]
                 self.__tfidfMap.at[term, "df"] += 1
+
+            if progress_callback:
+                progress_callback()
 
 
     # do the pandas to numpy conversion here itself 
