@@ -48,7 +48,6 @@ class SearchEngine:
             conn = sqlite3.connect(self.database + "/tfidfmap.db")
             self.__tfidfMap.to_sql("tfidfmap", conn, if_exists="replace")
             conn.close()
-            print("CHECKPOINT: tfidfmap.db created")
 
         # load tfidfmap for searching queries from existing database
         else:
