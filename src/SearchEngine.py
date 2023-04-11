@@ -189,31 +189,19 @@ class SearchEngine:
 
         N = len(self.__doclist)
 
-
-        print(matrix)
-        print(N)
-
-        # matrix['df'] = matrix['df'].apply(lambda x: math.log((N + 1)/(x + 1)) + 1) 
         df_norm = np.vectorize(lambda x: math.log((N + 1.0)/(x + 1.0)) + 1.0)
         matrix[:, 0] = df_norm(matrix[:, 0])
-        print(matrix)
 
+        # tfcalcTime = time.process_time()
 
-        tfcalcTime = time.process_time()
-
-        # quite slow, need to optimize this
-        # cols = [col for col in matrix.columns if col != "df"]
-        # docNmap = np.array([self.__docNmap[col] for col in cols])
-        # matrix[cols] = matrix[cols].div(docNmap, axis=1)
         cols = matrix[:, 1:]
         docNmap = np.array([self.__docNmap[col] for col in self.__doclist])
         matrix[:, 1:] = cols / docNmap
 
-        print("tfcalcTime: ", time.process_time() - tfcalcTime)
+        # print("tfcalcTime: ", time.process_time() - tfcalcTime)
 
         
         df_col = matrix[:, 0]
-        # matrix = matrix.drop(columns=["df"]).mul(df_col, axis=0)
         matrix = matrix[:, 1:] * df_col.reshape((df_col.shape[0], 1))
         return matrix
 
