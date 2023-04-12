@@ -9,10 +9,11 @@ My attempt at a TF-IDF search engine which makes use of the Pandas library to st
 tf-idf algorithm:
 https://en.wikipedia.org/wiki/Tf%E2%80%93idf
 
-future updates (in no particular order)
+Possible future updates (in no particular order)
 * port the Porter Stemmer algorithm to c++ and multithread it
 * use sparse matrices to represent the vector space
 * implement a frontend interface for the app
+* benchmark cosine similarity again Eigen (C++) implementation and bind it?
 * ~~change pandas dataframe to np array in maptomatrix()~~
 
 
