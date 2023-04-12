@@ -10,4 +10,3 @@ top_n = engine.search("EM radiation in the solar system")
 print("Time taken to search: ", time.time() - start)
 
 print(top_n)
-

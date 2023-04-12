@@ -6,7 +6,7 @@ import os
 import sqlite3
 import string
 from collections import Counter
-import tqdm 
+import tqdm
 
 import numpy as np
 import pandas as pd
@@ -36,13 +36,17 @@ class SearchEngine:
             os.mkdir(self.database)
 
             # create tfidfmap.db
-            self.__doclist = self.__fileCollector()  # recursively list all documents in the source directory  # noqa: E501
-            self.__docNmap = {}  # map of document name to number of terms in the document  # noqa: E501
+            self.__doclist = (
+                self.__fileCollector()
+            )  # recursively list all documents in the source directory  # noqa: E501
+            self.__docNmap = (
+                {}
+            )  # map of document name to number of terms in the document  # noqa: E501
 
-
-            with tqdm.tqdm(total=len(self.__doclist), desc="Building TF-IDF map") as pbar:
+            with tqdm.tqdm(
+                total=len(self.__doclist), desc="Building TF-IDF map"
+            ) as pbar:
                 self.__tfidfMapBuilder(progress_callback=lambda: pbar.update())
-
 
             # save tfidfmap for searching queries
             conn = sqlite3.connect(self.database + "/tfidfmap.db")
@@ -68,7 +72,6 @@ class SearchEngine:
     def search(self, query: "str", top_n: "int" = 5) -> None:
         self.__addQuery(query)  # add query to the tfidfMap
 
-
         # convert tfidfMap to tfidfMatrix with the query added
         tfidfMatrix = self.__mapToMatrix()
 
@@ -90,7 +93,6 @@ class SearchEngine:
         #     print(doc)
 
         return top_n_docs
-    
 
     # add query to the tfidfMap
     def __addQuery(self, query: "str") -> None:
@@ -120,23 +122,23 @@ class SearchEngine:
                         new_row[column] = 0
                 self.__tfidfMap = pd.concat([self.__tfidfMap, new_row], axis=0)
 
-
     # recusively collect all files in the source directory
     def __fileCollector(self) -> "list":
         filelist = []
         for root, dirs, files in os.walk(self.source_path):
             for file in files:
                 # ignore json and db files since they are for internal use, need to change this
-                if file.endswith(".json") or file.endswith(".db"):  
+                if file.endswith(".json") or file.endswith(".db"):
                     continue
                 else:
                     filelist.append(os.path.join(root, file))
 
-                if (len(filelist) == self.max_docs):  # cap the number of documents to 50 for now, need to change this
+                if (
+                    len(filelist) == self.max_docs
+                ):  # cap the number of documents to 50 for now, need to change this
                     return filelist
 
         return filelist
-    
 
     # perform some preprocessing on the document
     # 1. remove any stopwords from the document (using nltk stopwords package)
@@ -147,18 +149,12 @@ class SearchEngine:
         ps = PorterStemmer()
 
         # document pre processing using c++ bindings, refer to docPreProcessing.cpp
-        return list(map(ps.stem, cppbindings.docPreProcessing(filepath)))  
-
+        return list(map(ps.stem, cppbindings.docPreProcessing(filepath)))
 
     # calculate the tf of each term in the document
     # tf = (number of times term t appears in a document) / (total number of (non unique) terms in the document)
-
-
-    # kinda slow, maybe optimize this using c++ bindings
     def __tf(self, wordlist: "list") -> "dict":
-        
         return cppbindings.tf(wordlist)
-    
 
     # Build the tfidfMap from the doclist
     def __tfidfMapBuilder(self, progress_callback=None) -> None:
@@ -190,19 +186,15 @@ class SearchEngine:
             if progress_callback:
                 progress_callback()
 
-
-    # do the pandas to numpy conversion here itself 
     # map the tfidfMap to a matrix, remove the df column and normalize the matrix
     def __mapToMatrix(self) -> "np.ndarray":
-
         # convert to tfidfMap (pandas dataframe) to a numpy matrix
         matrix = self.__tfidfMap.to_numpy().astype(np.float64)
 
         N = len(self.__doclist)
 
-
         # normalize the matrix using the formula idf(t) = log((N + 1)/(df(t) + 1)) + 1
-        df_norm = np.vectorize(lambda x: math.log((N + 1.0)/(x + 1.0)) + 1.0)
+        df_norm = np.vectorize(lambda x: math.log((N + 1.0) / (x + 1.0)) + 1.0)
         matrix[:, 0] = df_norm(matrix[:, 0])
 
         # tfcalcTime = time.process_time()
@@ -213,12 +205,11 @@ class SearchEngine:
         matrix[:, 1:] = cols / docNmap
 
         # print("tfcalcTime: ", time.process_time() - tfcalcTime)
-        
+
         # multiply the tfidf of each term by the idf of the term to get the final tfidf
         df_col = matrix[:, 0]
         matrix = matrix[:, 1:] * df_col.reshape((df_col.shape[0], 1))
         return matrix
-    
 
     # calculate the cosine similarity score between the query and each document
     # cos(theta) = (qT * D) / (||q|| * ||D||)
@@ -234,7 +225,9 @@ class SearchEngine:
         divisors = q_mag * D_mags
         cos_thetas = np.divide(qTD, divisors)
 
-        cos_thetas = np.clip(cos_thetas, -1, 1)  # clip values to [-1, 1] to avoid nan values
+        cos_thetas = np.clip(
+            cos_thetas, -1, 1
+        )  # clip values to [-1, 1] to avoid nan values
 
         scores = np.arccos(cos_thetas)
 
