@@ -15,6 +15,7 @@ Possible future updates (in no particular order)
 * implement a frontend interface for the app
 * benchmark cosine similarity again Eigen (C++) implementation and bind it?
 * ~~change pandas dataframe to np array in maptomatrix()~~
+* Make the search typo insensitive
 
 
 ## How to run:
