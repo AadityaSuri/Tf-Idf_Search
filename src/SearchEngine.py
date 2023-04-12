@@ -35,14 +35,14 @@ class SearchEngine:
             # create database directory
             os.mkdir(self.database)
 
-            # create tfidfmap.db
-            self.__doclist = (
-                self.__fileCollector()
-            )  # recursively list all documents in the source directory  # noqa: E501
-            self.__docNmap = (
-                {}
-            )  # map of document name to number of terms in the document  # noqa: E501
+            # collect all documents in the source directory
+            for i in tqdm.tqdm(range(self.max_docs), desc="Collecting documents"):
+                self.__doclist = self.__fileCollector()
 
+            # map of document name to number of terms in the document
+            self.__docNmap = {}
+
+            # Build tfidfMap and display progress bar
             with tqdm.tqdm(
                 total=len(self.__doclist), desc="Building TF-IDF map"
             ) as pbar:
