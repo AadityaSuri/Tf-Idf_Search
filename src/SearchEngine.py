@@ -90,6 +90,7 @@ class SearchEngine:
         #     print(doc)
 
         return top_n_docs
+    
 
     # add query to the tfidfMap
     def __addQuery(self, query: "str") -> None:
@@ -119,6 +120,7 @@ class SearchEngine:
                         new_row[column] = 0
                 self.__tfidfMap = pd.concat([self.__tfidfMap, new_row], axis=0)
 
+
     # recusively collect all files in the source directory
     def __fileCollector(self) -> "list":
         filelist = []
@@ -134,6 +136,7 @@ class SearchEngine:
                     return filelist
 
         return filelist
+    
 
     # perform some preprocessing on the document
     # 1. remove any stopwords from the document (using nltk stopwords package)
@@ -150,10 +153,12 @@ class SearchEngine:
     # calculate the tf of each term in the document
     # tf = (number of times term t appears in a document) / (total number of (non unique) terms in the document)
 
+
     # kinda slow, maybe optimize this using c++ bindings
     def __tf(self, wordlist: "list") -> "dict":
         
         return cppbindings.tf(wordlist)
+    
 
     # Build the tfidfMap from the doclist
     def __tfidfMapBuilder(self, progress_callback=None) -> None:
@@ -189,26 +194,31 @@ class SearchEngine:
     # do the pandas to numpy conversion here itself 
     # map the tfidfMap to a matrix, remove the df column and normalize the matrix
     def __mapToMatrix(self) -> "np.ndarray":
-        # matrix = copy.copy(self.__tfidfMap)
+
+        # convert to tfidfMap (pandas dataframe) to a numpy matrix
         matrix = self.__tfidfMap.to_numpy().astype(np.float64)
 
         N = len(self.__doclist)
 
+
+        # normalize the matrix using the formula idf(t) = log((N + 1)/(df(t) + 1)) + 1
         df_norm = np.vectorize(lambda x: math.log((N + 1.0)/(x + 1.0)) + 1.0)
         matrix[:, 0] = df_norm(matrix[:, 0])
 
         # tfcalcTime = time.process_time()
 
+        # divide the tf of each term by the total number of terms in the document
         cols = matrix[:, 1:]
         docNmap = np.array([self.__docNmap[col] for col in self.__doclist])
         matrix[:, 1:] = cols / docNmap
 
         # print("tfcalcTime: ", time.process_time() - tfcalcTime)
-
         
+        # multiply the tfidf of each term by the idf of the term to get the final tfidf
         df_col = matrix[:, 0]
         matrix = matrix[:, 1:] * df_col.reshape((df_col.shape[0], 1))
         return matrix
+    
 
     # calculate the cosine similarity score between the query and each document
     # cos(theta) = (qT * D) / (||q|| * ||D||)

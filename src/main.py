@@ -2,7 +2,7 @@ from SearchEngine import SearchEngine
 import time
 
 start = time.time()
-engine = SearchEngine(r"../testset/sci.space", max_docs=500)
+engine = SearchEngine(r"../testset/sci.space")
 print("Time taken to initialize SearchEngine: ", time.time() - start)
 
 start = time.time()

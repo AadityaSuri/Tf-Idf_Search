@@ -4,8 +4,8 @@
 #include <fstream>
 #include <algorithm>
 #include <iomanip>
-#include "include/stopwords.h"
-#include "include/cppfuncs.h"
+#include "stopwords.h"
+#include "cppfuncs.h"
 
 
 std::vector<std::string> docPreProcessing(std::string filepath) {

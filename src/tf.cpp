@@ -1,6 +1,6 @@
 #include <string>
 #include <unordered_map>
-#include "include/cppfuncs.h"
+#include "cppfuncs.h"
 
 std::unordered_map<std::string, int> tf(std::vector<std::string> docTextList) {
     std::unordered_map<std::string, int> term_frequency;
