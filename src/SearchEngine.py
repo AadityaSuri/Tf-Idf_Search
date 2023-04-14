@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+from scipy import sparse
 import cppbindings
 
 # uncomment the following line if you are runnning this script for the first time or if
